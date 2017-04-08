@@ -1,0 +1,386 @@
+
+Overview of Current Gridworld, and What Can Be Done in it
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Note: The "motivated explorer" in the Gridworld is sometimes
+  referred to as AG (which is its internal name for itself),
+  or as ME (though we're now trying to avoid this) or as
+  Robbie (because it's hard not to think of it as a robot).
+
+You can program the knowledge, planning and behavior (both
+"physical" and dialog) of a simulated motivated, mobile,
+exploratory agent (AG) in a graphical "roadmap" where roads
+start, pass through, or end at specified "points". (The
+points and roads have atomic labels.) You can place various
+objects and stationary agents at the grid points, and the
+agent AG tries to maximize its "gratification". It can
+display some degree of self-awareness (and perhaps emotion
+as well) in its interaction with the world, for instance in
+its dialogs, or upon being questioned by the user. (An action
+history is stored, and the agent's beliefs can be accessed,
+for this purpose.)
+
+What interactions might indicate self-awarenes? A rather obvious
+way that an agent's self-awareness becomes evident is from
+its use of the word "I". So if you think in terms of the use
+of that word by the agent in its communications with other
+animate entities in the Gridworld or with you, you're thinking
+about self-awareness (or at least *apparent* self-awareness).
+For example, saying simple things like "I'm hungry", or
+"I have the key", or "I am grateful to you", or "I will fetch
+the banana", or "I met a sasquatch", or more complicated
+ones like "The sasquatch told me he has the key" or "I opened
+the box in order to get the ring" all show (apparent) self-
+awareness. (Actions like the last one are automatically
+recorded in the *history* list -- but of course, they are
+represented as operator instances, not in English. Also,
+the current verbalization routines for question answering
+use 'AG' rather than 'I' or 'ME' to refer to the agent, but
+this could easily be changed.)
+
+Some objects in the grid world may be consumable or portable
+and potentially useful, others might be harmful, others are
+mere obstacles; the stationary agents positioned at points
+in the road map might be asked questions by the mobile agent,
+or make requests, and may supply things or information the
+mobile agent wants, spontaneously or on request; and the
+mobile agent knows facts about itself and the current
+situation (i.e., in effect it has a SELF-MODEL), and
+operates according to a plan/agenda of actions to be carried
+out, which it dynamically modifies, evaluates (for expected
+"gratification") and executes.
+
+
+
+Basic utility routines (in Lisp) are available:
+@ setting up the grid world;
+@ defining object/agent types and their general properties;
+@ placing objects and agents in the world, along with facts,
+  associated objects (such as possessions or parts), and
+  propositional attitudes (such as beliefs and wants) that
+  they have;
+@ various actions, which you use at least for initial
+  familiarization, and perhaps keep as part of the world
+  you define; they include
+  - moving from place to place;
+  - eating something, sleeping, asking an agent (guru) something,
+    and others;
+  The applicability of actions will generally depend on whether
+  certain preconditions are currently true (e.g., the agent
+  needs to be tired in order to sleep, needs to be hungry in
+  order to eat, needs to be at the same point as an agent that
+  it wants to ask a question, etc. Planning and execution are
+  handled by the system for whatever (properly defined) actions
+  you specify.
+
+The motivated agent uses a logical representation for its
+knowledge about itself and the world -- including simple
+facts like (box object1), (wants agent1 object1), etc.,
+and more complex ones like (knows AG (whether (edible APPLE3))) .
+Note that the truth of these assertions is time-dependent.
+The motivated explorer can also have *general* conditional
+knowledge such as
+  ((apple ?x) => (good_to_eat ?x)),
+  ((is_grateful_to ?x ?y) => (is_willing_to_help ?x ?y)).
+
+  [We generally try to choose our predicates so as to make
+  rendering into English trivial. The idea is that if you
+  move the initial predicate over to the right into second
+  position, and then drop underscores and brackets, we have
+  English. For example, (is_willing_to_help Guru AG) becomes
+  "Guru is willing to help AG". There are some refinements
+  involving use of '+' in the name of a predicate to indicate
+  an insertion point for an argument. You should choose and
+  create predicate names that can be easily rendered into
+  English. See Section 2.1 of the manual for syntax of
+  predicate names, and Section 2.3.1 of the manual for
+  details.]
+
+Such rules are normally supplied in defining object types,
+though they may also be added separately to the agent's
+general knowledge. Note that conditional facts will allow
+chaining of inferences. Note also that rules are in prolog-like
+format. In the intuitive interpretation of a predicate like
+(is_grateful_to ?x ?y), we always take the leftmost argument
+as being the "sentence subject", i.e., this means "?x is
+grateful to ?y (as already indicated by the above remarks
+on rendering into English).
+
+
+We will make a "persistence" assumption that if a predicate
+is true of certain objects in a certain state (reached after
+some actions have been performed), then it remains true of
+those objects unless and until it is changed by an action
+directly or is inferred to be false via general knowledge.
+However, there are really two versions of this in the Gridworld,
+because there may be facts in the world that the agent doesn't
+know about, or ones that change without the agent's knowledge
+or volition (e.g., a fire). So while it is strictly true in
+the *world* being simulated that the only things that change
+are the ones that are changed by the simulation operators
+(the ones prefixed with 'actual'), the persistence assumptions
+made by the agent in maintining its *model* of the world may
+be mistaken; e.g., the next time it goes to the bank, the
+money it *assumed* was still in its account may in fact turn
+out to be gone. However, the agent always *updates* its
+knowledge with whatever "local" facts it can perceive or infer.
+
+
+Concerning "Who has what knowledge":
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Here I'm referring to the motivated agent as "Robbie", as
+there is some awkwardness in talking about AG as the agent.]
+
+Since the project is aimed at demonstrating self-awareness or
+consciousness in some way, a crucial aspect is the knowledge
+possessed by Robbie and other animate entities. We have said
+some things about Robbie's world model already, but the following
+provides more details of how knowledge is stated about the world,
+and how it is made available to Robbie and other entities,
+in particular when we define the world, object types, and
+particular objects.
+
+In building up the Gridworld, we will at the same time build
+Robbie's initial knowledge base, and in positioning entities
+in the world, we will associate some intial knowledge with
+those entities; this knowledge is not initially available to
+Robbie, but it is available to the entities that the knowledge
+is about, in the case of animate entities.
+
+In particular, in defining the network of roads in the Gridworld,
+we will at the same time be adding the connectivity facts, and
+the fact that the things connected by any road segment are
+"points", to Robbie's KB. For instance, we might add facts
+such as (point Crossing3), (point Dead-end4), and (connects
+Forest-path2 Crossing3 Dead-end4). Thus Robbie will in principle
+be in a position to *plan* how to get from one point to another,
+by following a sequence of roads. However, Robbie doesn't know
+in advance what things it will find at various places it goes
+to. So Robbie is in a similar situation as a person who comes
+to an unfamiliar county, equipped with general knowledge, specific
+facts about him/herself and the local, observable situation, and
+
+
+a map, but ignorant of what will be found at various places on
+the map. (However, in principle you could equip the agent with
+specific facts about distant places in advance. In fact, you
+could just have one location and have all the action take place
+there. In this way, various traditional planning problems or
+puzzles have been coded in the Gridworld.)
+
+Note that time arguments are left implicit -- any fact in the
+world description or in Robbie's world model is regarded as true
+*now*. No memory of past truths is maintained by Robbie
+(unfortunately) -- this is something that could be improved upon.
+
+Specific entities are defined, and placed in the Gridworld,
+in two stages. First, we define some *types* of entities,
+and some associated permanent knowledge. This is done using
+a command 'def-object(obj-type,properties)'. Then we apply a
+function for creating a named entity of a particular type,
+and placing it in the Gridworld along with some "associated
+things" -- things that the entity "has", in some sense, and
+some facts about its current state and about its current
+"propositional attitudes". The function call is of form (with
+all 7 arguments required; curr-time is usually 0, and the last
+3 args may be nil)
+  (place-object name obj-type point curr-time associated-things
+                                  curr-facts propos-attitudes).
+
+Defining a type
+~~~~~~~~~~~~~~~
+In more detail, in defining various types of animate and
+inanimate entities using '(def-object obj-type properties)',
+we associate some *general*, *permanent* properties with
+those entities, and in making those definitions we
+automatically add this general knowledge to Robbie's KB.
+For example, given the (abbreviated) general properties
+is_animate, is_furry, (has_IQ 50) for the type 'sasquatch',
+we would add the following (expanded) general facts to
+Robbie's KB:
+  ((sasquatch ?x) => (sasquatch ?x))
+  ((sasquatch ?x) => (is_animate ?x))
+  ((sasquatch ?x) => (is_furry ?x))
+  ((sasquatch ?x) => (has_IQ ?x 50))
+
+As mentioned, predicate names are chosen for convenient rendering
+into English. For instance, something like (has_IQ Grunt 50)
+(where Grunt is a sasquatch) can be verbalized as "Grunt has IQ 50",
+by pulling out the subject argument (i.e., the first argument
+of the predicate), and then sequentially putting in the remaining
+material, but replacing underscores by blank spaces. We also use '+'
+and additional characters in a predicate when we want the English
+version to include an extra word. For example, if we wanted to
+use a predicate for saying some object ?x is between object ?y and
+?z, we might write (is_between+and ?x ?y ?z), which indicates that
+the 'and' should go between ?y and ?z in the English verbalization.
+
+
+Defining and placing an object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In naming an entity (of a specified type) and placing it at some
+point in the Gridworld, using
+ (place-object name obj-type point curr-time associated-things
+                                  curr-facts propos-attitudes),
+we are supplying three kinds of additional information for it:
+- things that it currently "has" (e.g., a key or sword or banana);
+  these may be regarded as *possessions* in the case of animate
+  beings, or as contained or attached objects, in the case of
+  inanimate objects such as trees or boxes; for example,
+  a type predication like (key Key3) supplied under this
+  heading means that the named entity has Key3, and that
+  thing is a key; (see below for the representation of these
+  facts);
+- current-state facts about it; e.g., (hungry Grunt), or
+  (likes Grunt Tweety);
+- propositional attitudes such as (knows Grunt (that (has Robbie
+  Banana1))), or (wants Grunt (that (has Grunt Banana1))); [Here,
+  if we introduce indexical times, we might reformulate this so
+  that is says (wants Grunt (that (has Grunt Banana1 Soon)) Now).]
+  It is even possible to have nested knowledge facts or goal
+  facts such as (knows Grunt (that (knows Robbie (that (want Grunt
+  (has Grunt Banana1)))), i.e., Grunt knows that Robbie knows that
+  Grunt wants to have the banana; but such complex facts would
+  more likely be produced by inference than by manual input.
+
+When the command for placing a named entity in the Gridworld
+is executed, the knowledge supplied with the command will be
+added to the "current facts" associated with the named entity.
+For example, if the entity being defined and positioned in
+the Gridworld is Grunt (a sasquatch), and (key Key3) appears
+on the given possessions list, the facts (is_a Grunt sasquatch)
+(has Grunt Key3 Now1) and (key Key3 Now1) would be added to
+Grunt's current facts. Likewise all given basic facts and
+propositional attitudes would be added to the current facts.
+
+For an animate entity, we may assume that it *knows* all
+of its current facts -- they are open to its "introspection".
+So we are assuming that animate entities know what kinds
+of things they are, what they have, what their current state
+is, what they know, and what they want. Note that even
+inanimate entities may have propositional attitudes associated
+with them. For example, for a certain box, Box1, we might have
+  (contains_message Box1 (located_at Key1 Dead-end3)).
+The difference is just that the inanimate entity doesn't
+"know" this fact.
+
+
+Robbie doesn't in general know the current facts and
+possessions associated with Gridworld entities. However,
+all those local facts that are not "occluded' become available
+to Robbie when Robbie is at the location of the entity. This
+is intended to model *perception* -- "what is immediately apparent"
+when you find yourself in a given place/situation). Occluded facts
+are determined by certain predicates being marked as occluded;
+for facts with an occluded predicate, we assume they are known
+only to the subject of the predication, whenever the subject
+is animate. For example, "hungry" might be an occluded
+predicate, but for a fact (hungry <term>), the subject <term>
+is assumed to know that it is hungry whenever this is true.
+In addition Robbie may discover occluded knowledge via
+appropriate actions. For example, the action "open" applied
+to a box followed by "read_message" may cause Robbie
+to know the contents of the message -- if the box had
+a message in it. For animate entities, Robbie might request
+an object, or ask for information, but the entities might
+want something in exchange -- e.g., food or information
+(e.g., they might want information about other entities, which
+they cannot visit, being stationary).
+
+Robbie's self-knowledge
+~~~~~~~~~~~~~~~~~~~~~~
+We have already mentioned the "geographic" knowledge Robbie
+starts out with, and have indicated that Robbie will acquire
+further knowledge in interacting with entities in Gridworld.
+However, most of its initial *self-knowledge* will be added
+when we carry out a place-object command for Robbie -- we
+can add as much current-state knowledge and attitude knowledge
+as we like at that point. The self-knowledge will change (along
+with other knowledge) as actions are performed. For instance,
+when Robbie obtains an object that it wants, the effect will
+be that Robbie *has* the object -- and that fact in Robbie's
+KB will be accessible to introspection, i.e., he will *know*
+that he has the object. Similarly, when he eats an object,
+and the taste is good, he will be pleased, and this fact ind
+his KB will be open to instrospection, i.e., he will *know*
+he is pleased (and thus will have pleasure-qualia, if we
+believe McDermott! -- see Mind and Mechanism)
+
+Actions and plans
+~~~~~~~~~~~~~~~~~
+This brings us to the issue of actions available to Robbie
+and other animate entities, and plans carried out by Robbie.
+
+Action types will have a list of parameters, and a set
+of preconditions and effects. As a hypothetical example (not
+available in the predefined sample world), one action for
+taking an object that belongs to some entity might have the
+
+
+parameters
+   ?owner, ?object, ?point, ?number_of_free_hands
+and the preconditions
+   (has ?owner ?object), (willing ?owner (has Robbie ?object)),
+   (is_at_loc ?owner ?point), (is_at_loc Robbie ?point),
+   (has_two_free_hands ?Robbie)
+and the effects
+   (not (has ?owner ?object)), (has Robbie ?object),
+   (has_one_free_hand Robbie);
+And we might have a second such action that starts off with
+one free hand.
+
+It is also possible to have actions with numerical parameters,
+e.g., we could allow for the number of Robbie's "free hands"
+in the above kind of situation, writing
+   (has ?owner ?object), (willing ?owner (has Robbie ?object)),
+   (is_at_loc ?owner ?point), (is_at_loc Robbie ?point),
+   (has_free_hands Robbie ?number_of_free_hands)
+with effects
+   (not (has ?owner ?object)), (has Robbie ?object),
+   (has_free_hands Robbie (sub1? ?number_of_free_hands));
+where 'sub1?' is a function for subtracting 1 from an argument,
+with the final question mark indicating that this is a user-
+defined Lisp function that can be evaluated whenever the given
+arguments contain no variables. (The planner and simulator
+also recognize a few functions like '+', '*', and '-' as
+being evaluable, even though they don't end in '?'.) The
+current example world not only contains numerical functions
+such as (distance_from+to+on? ?x ?y ?z), but also question-
+answering functions such as (answer_to_whq.actual? ?q).
+In this way question answering is smoothly integrated with
+other behavior in the Gridworld.
+
+The predefined sample world does not make use of any emotions
+for Robbie -- unless you count hunger and fatigue as emotions
+(or at types of primitive affect). Levels of hunger and fatigue
+are used as input parameters to actions, and are updated in the
+action effects using computable functions. Emotions could be
+handled in much the same way. E.g., we could have Robbie get
+scared if it is near a dangerous creature (shades of "Hunt the
+Wumpus"), or get happy, or fall in love, etc. (However, there's
+no direct provision for additional nonstationary agents capable
+of self-motivated action, so romances would be somewhat limited!)
+
+
+Plans will consist of sequences of actions with particular
+values for their parameters. The idea is for Robbie to continually
+explore new plans. It performs the first step of the plan with
+the apparently highest cumulative utility, and then plans again.
+The reason for continual re-planning is that performing an
+action, such as going to a new place or getting an answer to
+a question from a guru, often brings to light new facts that
+can and should affect what the best thing to do next is.
+Planning is done by forward-search from a given state, say,
+2-8 steps into the future, followed my propagating backward the
+rewards and costs of the various actions and states reached,
+to obtain best-possible values and hence the seemingly best
+sequence of actions. Then the first step of that best sequence
+is carried out. Then the process repeats; the (go!) function
+call always takes us forward one more step. The basic forward
+search function is 'chain-forward', and this is called upon by
+the 'go!' function, which does a systematic forward search,
+constrained by a "search beam" (specifying allowable number of
+branches and allowable operators at each search depth). When the
+seemingly best next action has been executed, the current state i
+s updated accordingly.
+
