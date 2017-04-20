@@ -1,6 +1,8 @@
 ; returns a list of points for a room
 ; HELPER FUNCTIONS FOR BUILDING MAP
 ; symbol format ?room-?x-?y
+
+
 (defun room-pts-rect (?room ?x1 ?x2 ?y1 ?y2)
   (loop for x from ?x1 to ?x2
                      append
@@ -33,15 +35,22 @@
 
 (def-roadmap *dungeonworld-points* *dungeonworld-paths*)
 
-;(def-roadmap '(main gold) '( (path1 main 3 gold) ))
+;(def-roadmap '(main-0-5 main-1-5 main-2-5 main-3-5 main-4-5 main-5-5 main-6-5 main-7-5 main-8-5 main-9-5) '( (path1 main-0-5 1 main-1-5) ) )
 
 
 (def-object 'robot '(is_animate can_talk))
 (def-object 'apple '(is_inanimate is_edible (has_cost 3.0)))
 
-(place-object 'apple1-main 'apple 'main-0-0 0 
+(place-object 'apple1-main 'apple 'main-0-5 0 
 	nil 
 	'((is_edible apple1-main) 
+	 )
+    nil 
+)
+
+(place-object 'apple2-main 'apple 'main-0-5 0 
+	nil 
+	'((is_edible apple2-main) 
 	 )
     nil 
 )
@@ -56,7 +65,11 @@
  nil
 )
 
+(defparameter *room-facts*
+      (make-htable '( (width 'main 10)
+                      (depth 'main 10) )))
 
+; (find-location 'AG *world-facts*)
 (setq *operators* '(turn-north turn-south turn-west turn-east))
 (setq *search-beam*
 	(list (cons 5 *operators*) (cons 4 *operators*) (cons 3 *operators*) ))
@@ -69,7 +82,7 @@
       (make-op :name 'turn-north :pars '(?dir)
       :preconds '( (not (is_facing NORTH)) (is_facing ?dir) ) 
       :effects '( (is_facing NORTH) )
-      :time-required 0
+      :time-required 1
       :value 3
       )
 )
@@ -87,7 +100,7 @@
       (make-op :name 'turn-south :pars '(?dir)
       :preconds '( (not (is_facing SOUTH)) (is_facing ?dir) )
       :effects '( (is_facing SOUTH) )
-      :time-required 0
+      :time-required 1
       :value 3
       )
 )
@@ -105,7 +118,7 @@
       (make-op :name 'turn-west :pars '(?dir)
       :preconds '( (not (is_facing WEST)) (is_facing ?dir) )
       :effects '( (is_facing WEST) )
-      :time-required 0
+      :time-required 1
       :value 3
       )
 )
@@ -123,7 +136,7 @@
       (make-op :name 'turn-east :pars '(?dir)
       :preconds '( (not (is_facing EAST)) (is_facing ?dir) )
       :effects '( (is_facing EAST) )
-      :time-required 0
+      :time-required 1
       :value 3
       )
 )
@@ -134,6 +147,51 @@
     :stopconds '( (is_facing EAST) )
 	:deletes '( (is_facing ?dir) (not (is_facing EAST)) )
     :adds '( (is_facing EAST) (not (is_facing ?dir)) )
+	)
+)
+
+(defun width (?room)
+     (caddr (cadr (gethash (list 'width 'that ?room nil) *room-facts*))))
+
+(defun depth (?room)
+     (caddr (cadr (gethash (list 'depth 'that ?room nil) *room-facts*))))
+
+(defun saw (pos dir)
+ (let* ((sym-lst (split-regexp "-" (symbol-name pos)))
+       (room (intern (car sym-lst)))
+       (x (parse-integer (cadr sym-lst)))
+       (y (parse-integer (caddr sym-lst)))
+       (dx (width room))
+       (dy (depth room))
+       (begin (cond 
+                ((equal dir 'NORTH) (+ x 1))
+                ((equal dir 'SOUTH) 0)
+                ((equal dir 'WEST)  0)
+                ((equal dir 'EAST)  (+ y 1))))
+       (end (cond 
+                ((equal dir 'NORTH) dx)
+                ((equal dir 'SOUTH) (- x 1))
+                ((equal dir 'WEST) (- y 1))
+                ((equal dir 'EAST) dy))))
+   (append '(can_see) (list
+   (loop for n from begin to end
+         append
+            (let* ((xp (if (or (equal dir 'NORTH) (equal dir 'SOUTH)) n x))
+                   (yp (if (or (equal dir 'EAST) (equal dir 'WEST)) n y))
+                   (plst (list room xp yp))
+                   (point (intern (format nil "~{~a~^-~}" plst)))
+                   (hval  (gethash (list 'is_at nil point) *world-facts*))
+                   (nobjs (car hval))
+                   (pred (cdr hval))
+                   (objs (mapcar 'cadr pred)))
+              objs))))))
+
+(setq see.actual 
+	(make-op.actual :name 'see.actual :pars '(?pos ?dir ?objects)
+	:startconds '( (is_facing ?dir) (is_at ?pos) (can_see ?objects) )
+    :stopconds '(T)
+	:deletes '( (can_see ?objects) )
+    :adds '( (saw ?pos ?dir) )
 	)
 )
 
