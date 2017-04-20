@@ -39,37 +39,37 @@
 (def-object 'robot '(is_animate can_talk))
 (def-object 'apple '(is_inanimate is_edible (has_cost 3.0)))
 
-(place-object 'apple1&main 'apple 'main&1&5 0 
+(place-object 'apple1@main 'apple 'main&1&5 0 
 	nil 
-	'((is_edible apple1&main) 
+	'((is_edible apple1@main) 
 	 )
     nil 
 )
 
-(place-object 'apple2&main 'apple 'main&7&5 0 
+(place-object 'apple2@main 'apple 'main&7&5 0 
 	nil 
-	'((is_edible apple2&main) 
+	'((is_edible apple2@main) 
 	 )
     nil 
 )
 
-(place-object 'apple3&main 'apple 'main&5&1 0 
+(place-object 'apple3@main 'apple 'main&5&1 0 
 	nil 
-	'((is_edible apple3&main) 
+	'((is_edible apple3@main) 
 	 )
     nil 
 )
 
-(place-object 'apple4&main 'apple 'main&5&6 0 
+(place-object 'apple4@main 'apple 'main&5&6 0 
 	nil 
-	'((is_edible apple4&main) 
+	'((is_edible apple4@main) 
 	 )
     nil 
 )
 
-(place-object 'apple5&main 'apple 'main&5&6 0 
+(place-object 'apple5@main 'apple 'main&5&6 0 
 	nil 
-	'((is_edible apple5&main) 
+	'((is_edible apple5@main) 
 	 )
     nil 
 )
@@ -112,19 +112,19 @@
        (dx (width room))
        (dy (depth room))
        (begin (cond 
-                ((equal dir 'EAST) (+ x 1))
-                ((equal dir 'WEST) 0)
-                ((equal dir 'SOUTH)  0)
-                ((equal dir 'NORTH)  (+ y 1))))
+                ((equal dir 'NORTH) (+ x 1))
+                ((equal dir 'SOUTH) 0)
+                ((equal dir 'WEST)  0)
+                ((equal dir 'EAST)  (+ y 1))))
        (end (cond 
-                ((equal dir 'EAST) dx)
-                ((equal dir 'WEST) (- x 1))
-                ((equal dir 'SOUTH) (- y 1))
-                ((equal dir 'NORTH) dy))))
+                ((equal dir 'NORTH) dx)
+                ((equal dir 'SOUTH) (- x 1))
+                ((equal dir 'WEST) (- y 1))
+                ((equal dir 'EAST) dy))))
    (loop for n from begin to end
          append
-            (let* ((xp (if (or (equal dir 'EAST) (equal dir 'WEST)) n x))
-                   (yp (if (or (equal dir 'NORTH) (equal dir 'SOUTH)) n y))
+            (let* ((xp (if (or (equal dir 'NORTH) (equal dir 'SOUTH)) n x))
+                   (yp (if (or (equal dir 'EAST) (equal dir 'WEST)) n y))
                    (plst (list room xp yp))
                    (point (intern (format nil "~{~a~^&~}" plst)))
                    (hval  (gethash (list 'is_at nil point) *world-facts*))
@@ -206,17 +206,17 @@
     :adds '( (is_facing EAST) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir)) )
 	)
 )
-#|
+
+
 (setq see.actual 
-	(make-op.actual :name 'see.actual :pars '(?pos ?dir)
-	:startconds '( (is_facing ?dir) (is_at ?pos) ) 
-    :starredStopConds '((looked))
-	:deletes nil
-    :starredAdds '((looked))
-    :adds '( (can_see (saw ?pos ?dir)) )
+	(make-op.actual :name 'see.actual :pars '(?pos ?dir ?objects)
+	:startconds '( (is_facing ?dir) (is_at ?pos) (can_see AG ?objects) ) 
+    :starredStopConds '((T)) ;'((looked))
+	:deletes '( (can_see AG ?objects) ) 
+    :starredAdds nil ;'((looked))
+    :adds '( (can_see (saw? ?pos ?dir)) )
 	)
 )
-|#
 
 ; The following is from the gridworld-world.lisp file (for testing purposes right now):
 
