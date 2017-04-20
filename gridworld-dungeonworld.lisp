@@ -1,6 +1,5 @@
 ; returns a list of points for a room
 ; HELPER FUNCTIONS FOR BUILDING MAP
-; ====================================================================================================
 
 ; symbol format ?room-?x-?y
 (defun room-pts-rect (?room ?x1 ?x2 ?y1 ?y2)
@@ -20,7 +19,10 @@
         (edges (room-edges-rect ?room points)))
     (list points edges)))
 
+
+
 ; ===================================================================================================
+; Building world
 
 (defvar *dungeonworld-points* '())
 (defvar *dungeonworld-paths* '())
@@ -42,3 +44,31 @@
 	 )
     nil 
 )
+
+
+(setq *operators* '(turn))
+; ======================================================================================================
+; defining Actions
+
+; Perception
+
+(setq turn
+      (make-op :name 'turn :pars '(?d)
+      :preconds '( (not (is_facing AG ?d))
+                  )
+      :effects '( (is_facing AG ?d)
+                 )
+      :time-required 0
+      :value 3
+      )
+)
+
+(setq turn.actual 
+	(make-op.actual :name 'turn.actual :pars '(?d)
+	:startconds '( (not (is_facing AG ?d)) )
+    :stopconds '( (is_facing AG ?d) )
+	:deletes '( '(is_facing AG ?#1) )
+    :adds '( (is_facing AG ?d) )
+	)
+)
+
