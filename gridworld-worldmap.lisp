@@ -1,7 +1,7 @@
 ; returns a list of points for a room
 ; HELPER FUNCTIONS FOR BUILDING MAP
 ; symbol format ?room-?x-?y
-(require :regexp2)
+;(require :regexp2)
 
 (defun room-pts-rect (?room ?x1 ?x2 ?y1 ?y2)
   (loop for x from ?x1 to ?x2
@@ -18,24 +18,24 @@
       (loop for e in tl do
         (if (or 
               (and 
-                (equal (cadr (split-re "\\-" (string hd))) (cadr (split-re "\\-" (string e)))) 
+                (equal (cadr (split-regexp "&" (symbol-name hd))) (cadr (split-regexp "&" (symbol-name e)))) 
                 (or 
                   (eq 
-                    (+ 1 (parse-integer (cadr (cdr (split-re "\\-" (string hd)))))) 
-                    (parse-integer (cadr (cdr (split-re "\\-" (string e)))))) 
+                    (+ 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name hd)))))) 
+                    (parse-integer (cadr (cdr (split-regexp "&" (symbol-name e)))))) 
                   (eq 
-                    (+ 1 (parse-integer (cadr (cdr (split-re "\\-" (string e)))))) 
-                    (parse-integer (cadr (cdr (split-re "\\-" (string hd))))))))
+                    (+ 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name e)))))) 
+                    (parse-integer (cadr (cdr (split-regexp "&" (symbol-name hd))))))))
               (and 
-                (equal (cadr (cdr (split-re "\\-" (string hd)))) (cadr (cdr (split-re "\\-" (string e)))))
+                (equal (cadr (cdr (split-regexp "&" (symbol-name hd)))) (cadr (cdr (split-regexp "&" (symbol-name e)))))
                 (or 
                   (eq 
-                    (+ 1 (parse-integer (cadr (split-re "\\-" (string hd))))) 
-                    (parse-integer (cadr (split-re "\\-" (string e)))))
+                    (+ 1 (parse-integer (cadr (split-regexp "&" (symbol-name hd))))) 
+                    (parse-integer (cadr (split-regexp "&" (symbol-name e)))))
                   (eq 
-                    (+ 1 (parse-integer (cadr (split-re "\\-" (string e)))))
-                    (parse-integer (cadr (split-re "\\-" (string hd))))))))
-          (setf ?lst (append (list (list (intern (concatenate 'string (string hd) "_" (string e))) hd 1 e)) ?lst)))) 
+                    (+ 1 (parse-integer (cadr (split-regexp "&" (symbol-name e)))))
+                    (parse-integer (cadr (split-regexp "&" (symbol-name hd))))))))
+          (setf ?lst (append (list (list (intern (concatenate 'string (symbol-name hd) "_" (symbol-name e))) hd 1 e)) ?lst)))) 
       (room-edges-rect-helper ?room (cdr ?points) ?lst))))
 
 (defun room-edges-rect (?room ?points)
