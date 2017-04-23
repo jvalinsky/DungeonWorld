@@ -54,18 +54,16 @@
 
 (place-object 'AG 'robot 'main&5&5 0
  nil
- '( (is_facing SOUTH)
-    (not (is_facing NORTH))
-    (not (is_facing EAST))
-    (not (is_facing WEST))
-    (can_see AG nil)
-   )
+ '(
+   (is_facing AG SOUTH)
+   (is_at AG main&5&5)
+   (eyes_open AG)
+   (can_see AG (apple3@main apple1@main))
+  )
  nil
 )
 
-(defparameter *room-facts*
-      (make-htable '( (width 'main 10)
-                      (depth 'main 10) )))
+
 
 ; (find-location 'AG *world-facts*)
 (setq *operators* '(turn+north turn+south turn+west turn+east answer_user_whq ))
@@ -76,11 +74,6 @@
 
 ; Perception
 
-(defun width (?room)
-     (caddr (cadr (gethash (list 'width 'that ?room nil) *room-facts*))))
-
-(defun depth (?room)
-     (caddr (cadr (gethash (list 'depth 'that ?room nil) *room-facts*))))
 
 (defun saw? (pos dir)
  (let* ((sym-lst (split-regexp "&" (symbol-name pos)))
@@ -114,85 +107,83 @@
 
 
 (setq turn+north
-      (make-op :name 'turn+north :pars '(?dir ?pos)
-      :preconds '( (not (is_facing NORTH)) (is_facing ?dir) (is_at AG ?pos)) 
-      :effects '( (is_facing NORTH) )
+      (make-op :name 'turn+north :pars '(?dir)
+      :preconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) ) 
+      :effects '( (is_facing AG NORTH) )
       :time-required 1
       :value 3
       )
 )
 
 (setq turn+north.actual 
-	(make-op.actual :name 'turn+north.actual :pars '(?dir ?pos ?objects)
-	:startconds '( (not (is_facing NORTH)) (is_facing ?dir)  (is_at AG ?pos) (can_see AG ?objects))
-    :stopconds '( (is_facing NORTH) )
-	:deletes '( (is_facing ?dir) (not (is_facing NORTH)) (looked) (can_see AG ?objects) )
-    :adds '( (is_facing NORTH) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir)) )
+	(make-op.actual :name 'turn+north.actual :pars '(?dir)
+	:startconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) )
+    :stopconds '( (is_facing AG NORTH) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG NORTH))  )
+    :adds '( (is_facing AG NORTH) (not (is_facing AG ?dir))  )
 	)
 )
 
 (setq turn+south
-      (make-op :name 'turn+south :pars '(?dir ?pos)
-      :preconds '( (not (is_facing SOUTH)) (is_facing ?dir) (is_at AG ?pos))
-      :effects '( (is_facing SOUTH) )
+      (make-op :name 'turn+south :pars '(?dir)
+      :preconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir) )
+      :effects '( (is_facing AG SOUTH) )
       :time-required 1
       :value 3
       )
 )
 
 (setq turn+south.actual 
-	(make-op.actual :name 'turn+south.actual :pars '(?dir ?pos ?objects)
-	:startconds '( (not (is_facing SOUTH)) (is_facing ?dir) (is_at AG ?pos) (can_see AG ?objects) )
-    :stopconds '( (is_facing SOUTH) )
-	:deletes '( (is_facing ?dir) (not (is_facing SOUTH)) (looked) (can_see AG ?objects) )
-    :adds '( (is_facing SOUTH) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir))  )
+	(make-op.actual :name 'turn+south.actual :pars '(?dir)
+	:startconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir) )
+    :stopconds '( (is_facing AG SOUTH) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG SOUTH))  )
+    :adds '( (is_facing AG SOUTH) (not (is_facing AG ?dir))  )
 	)
 )
 
 (setq turn+west
-      (make-op :name 'turn+west :pars '(?dir ?pos)
-      :preconds '( (not (is_facing WEST)) (is_facing ?dir)  (is_at AG ?pos))
-      :effects '( (is_facing WEST)  )
+      (make-op :name 'turn+west :pars '(?dir)
+      :preconds '( (not (is_facing AG WEST)) (is_facing AG ?dir) )
+      :effects '( (is_facing AG WEST)  )
       :time-required 1
       :value 3
       )
 )
 
 (setq turn+west.actual 
-	(make-op.actual :name 'turn+west.actual :pars '(?dir ?pos ?objects)
-	:startconds '( (not (is_facing WEST)) (is_facing ?dir) (is_at AG ?pos) (can_see AG ?objects) )
-    :stopconds '( (is_facing WEST) )
-	:deletes '( (is_facing ?dir) (not (is_facing WEST)) (looked) (can_see AG ?objects) )
-    :adds '( (is_facing WEST) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir)) )
+	(make-op.actual :name 'turn+west.actual :pars '(?dir)
+	:startconds '( (not (is_facing AG WEST)) (is_facing AG ?dir)  )
+    :stopconds '( (is_facing AG WEST) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG WEST)) )
+    :adds '( (is_facing AG WEST) (not (is_facing AG ?dir)) )
 	)
 )
 
 (setq turn+east
-      (make-op :name 'turn+east :pars '(?dir ?pos)
-      :preconds '( (not (is_facing EAST)) (is_facing ?dir) (is_at AG ?pos)  )
-      :effects '( (is_facing EAST) )
+      (make-op :name 'turn+east :pars '(?dir)
+      :preconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) )
+      :effects '( (is_facing AG EAST) )
       :time-required 1
       :value 3
       )
 )
 
 (setq turn+east.actual 
-	(make-op.actual :name 'turn+east.actual :pars '(?dir ?pos ?objects)
-	:startconds '( (not (is_facing EAST)) (is_facing ?dir) (is_at AG ?pos) (can_see AG ?objects) )
-    :stopconds '( (is_facing EAST) )
-	:deletes '( (is_facing ?dir) (not (is_facing EAST)) (looked) (can_see AG ?objects))
-    :adds '( (is_facing EAST) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir)) )
+	(make-op.actual :name 'turn+east.actual :pars '(?dir)
+	:startconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) )
+    :stopconds '( (is_facing AG EAST) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG EAST))  )
+    :adds '( (is_facing AG EAST) (not (is_facing AG ?dir)) )
 	)
 )
 
-
 (setq see.actual 
-	(make-op.actual :name 'see.actual :pars '(?pos ?dir ?objects)
-	:startconds '( (is_facing ?dir) (is_at ?pos) (can_see AG ?objects) ) 
-    :starredStopConds '((T)) ;'((looked))
+	(make-op.actual :name 'see.actual :pars '(?dir ?pos ?objects)
+	:startconds '( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 
+    :starredStopConds  '( (not (eyes_open AG)) )
 	:deletes '( (can_see AG ?objects) ) 
-    :starredAdds nil ;'((looked))
-    :adds '( (can_see (saw? ?pos ?dir)) )
+    :adds '( (can_see AG (saw? ?pos ?dir))  )
 	)
 )
 

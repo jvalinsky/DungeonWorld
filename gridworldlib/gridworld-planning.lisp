@@ -894,6 +894,7 @@
   (and (symbolp f) (or (member f '(+ - * / < <= = >= >))
   					   (eq f 'random)
                        (char= (car (last (coerce (string f) 'list))) #\?)))
+  ;(format t "func: ~a~%" f)
 )
 
 (defun contains-var (expr)
