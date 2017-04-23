@@ -29,40 +29,40 @@
   '((is_openable box2@main)) 
   nil)
 
-(place-object 'apple1@main 'apple 'main&1&5 0 
-	nil 
-	'((is_edible apple1@main) 
-	 )
-    nil 
-)
+; (place-object 'apple1@main 'apple 'main&1&5 0 
+; 	nil 
+; 	'((is_edible apple1@main) 
+; 	 )
+;     nil 
+; )
 
-(place-object 'apple2@main 'apple 'main&7&5 0 
-	nil 
-	'((is_edible apple2@main) 
-	 )
-    nil 
-)
+; (place-object 'apple2@main 'apple 'main&7&5 0 
+; 	nil 
+; 	'((is_edible apple2@main) 
+; 	 )
+;     nil 
+; )
 
-(place-object 'apple3@main 'apple 'main&5&1 0 
-	nil 
-	'((is_edible apple3@main) 
-	 )
-    nil 
-)
+; (place-object 'apple3@main 'apple 'main&5&1 0 
+; 	nil 
+; 	'((is_edible apple3@main) 
+; 	 )
+;     nil 
+; )
 
-(place-object 'apple4@main 'apple 'main&5&6 0 
-	nil 
-	'((is_edible apple4@main) 
-	 )
-    nil 
-)
+; (place-object 'apple4@main 'apple 'main&5&6 0 
+; 	nil 
+; 	'((is_edible apple4@main) 
+; 	 )
+;     nil 
+; )
 
-(place-object 'apple5@main 'apple 'main&5&6 0 
-	nil 
-	'((is_edible apple5@main) 
-	 )
-    nil 
-)
+; (place-object 'apple5@main 'apple 'main&5&6 0 
+; 	nil 
+; 	'((is_edible apple5@main) 
+; 	 )
+;     nil 
+; )
 
 (place-object 'AG 'robot 'main&5&5 0
  nil
@@ -276,27 +276,27 @@
   )
 
 (setq takeItem
-      (make-op :name 'takeItem :pars '(?dir ?pos ?item ?itemPos)
+      (make-op :name 'takeItem :pars '(?dir ?pos ?item)
       :preconds '( 
         (is_at AG ?pos) (is_facing AG ?dir)
-        (not (equal? ?item AG))
-                   (is_at ?item ?pos) 
-                   (is+adjacent? ?pos ?pos)
-                   ; (is_direction? ?dir ?itemPos ?pos) 
-                   ;(not (has_item AG ?item))
-                   )
+        (is_openable ?item)
+        (is_at ?item ?pos)
+        ;(is+adjacent? ?pos ?itemPos)
+        ;(is_direction? ?dir ?itemPos ?pos) 
+        (not (has_item AG ?item))
+      )
       :effects '( (has_item AG ?item) )
       :time-required 1
-      :value 2
+      :value 4
       )
 )
 
 (setq takeItem.actual 
   (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
   :startconds '( (is_at AG ?pos) (is_facing AG ?dir)
-                   (is+adjacent? ?pos ?itemPos) ;(is_at ?item ?itemPos) 
-                   ;(is_direction? ?dir ?itemPos ?pos)
-                   ;(not (has_item AG ?item))
+                   (is+adjacent? ?pos ?itemPos) (is_at ?item ?itemPos) 
+                   (is_direction? ?dir ?itemPos ?pos)
+                   (not (has_item AG ?item))
                    )
   :stopconds '( (has_item AG ?item) )
   :adds '( (has_item AG ?item) )
