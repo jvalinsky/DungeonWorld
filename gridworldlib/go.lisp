@@ -59,6 +59,8 @@
                 ; Actually implement the effects of the action in the world.
                 (setq action-name (car (state-node-parent *curr-state-node*)))
                 (setq *node-now* *curr-state-node*)
+                ;(format t "action-name: ~a~%" action-name)
+                ;(format t "what is this: ~a~%" (eval action-name))
                 (implement-effects action-name)
         )
 ); end of go!
