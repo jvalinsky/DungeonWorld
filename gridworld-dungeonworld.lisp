@@ -87,7 +87,7 @@
 
 
 ; (find-location 'AG *world-facts*)
-(setq *operators* '(turn+north turn+south turn+west turn+east answer_user_whq ))
+(setq *operators* '(turn+north turn+south turn+west turn+east answer_user_whq take+item ))
 (setq *search-beam*
 	(list (cons 5 *operators*) (cons 4 *operators*) (cons 3 *operators*) ))
 ; ======================================================================================================
@@ -209,7 +209,7 @@
 )
 
 ;Helper to see if two points are adjacent
-(defun is_adjacent? (?x ?y)
+(defun is+adjacent? (?x ?y)
   (find
     (+
       (abs
@@ -270,22 +270,22 @@
                 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   ))
 
-(setq takeItem
+(setq take+item
       (make-op :name 'takeItem :pars '(?dir ?pos ?item ?itemPos)
       :preconds '( (is_at AG ?pos) (is_facing AG ?dir)
-                   (is_at ?item ?itemPos) (is_adjacent? ?pos ?itemPos)
-                   (is_direction? ?dir ?itemPos ?pos) )
+                   (is_at ?item ?itemPos) (is+adjacent? ?pos ?itemPos))
+                   ;(is_direction? ?dir ?itemPos ?pos) )
       :effects '( (has AG ?item) )
       :time-required 1
       :value 5
       )
 )
 
-(setq takeItem.actual 
+(setq take+item.actual 
   (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
   :startconds '( (is_at AG ?pos) (is_facing AG ?dir)
-                   (is_at ?item ?itemPos) (is_adjacent? ?pos ?itemPos)
-                   (is_direction? ?dir ?itemPos ?pos) )
+                   (is_at ?item ?itemPos) (is+adjacent? ?pos ?itemPos) )
+                   ;(is_direction? ?dir ?itemPos ?pos) )
   :adds '( (has AG ?item) )
   )
 )
