@@ -24,7 +24,7 @@
   '((is_openable box1@main)) 
   nil)
 
-(place-object 'box2@main 'box 'main&0&5 0
+(place-object 'box2@main 'box 'main&5&5 0
   '((bomb bomb0@main))
   '((is_openable box2@main)) 
   nil)
@@ -87,7 +87,7 @@
 
 
 ; (find-location 'AG *world-facts*)
-(setq *operators* '(turn+north turn+south turn+west turn+east answer_user_whq ))
+(setq *operators* '(turn+north turn+south turn+west turn+east answer_user_whq takeItem))
 (setq *search-beam*
 	(list (cons 5 *operators*) (cons 4 *operators*) (cons 3 *operators*) ))
 ; ======================================================================================================
@@ -209,8 +209,9 @@
 )
 
 ;Helper to see if two points are adjacent
-(defun is_adjacent? (?x ?y)
-  (find
+(defun is+adjacent? (?x ?y)
+  (format t "~S is_adjacent? ~S~%" ?x ?y)
+  (not (null (find
     (+
       (abs
         (-
@@ -219,8 +220,8 @@
       (abs
         (-
           (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-    '(0 1)
+          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
+    '(0 1))))
 )
 
 ;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
@@ -272,10 +273,15 @@
 
 (setq takeItem
       (make-op :name 'takeItem :pars '(?dir ?pos ?item ?itemPos)
-      :preconds '( (is_at AG ?pos) (is_facing AG ?dir)
-                   (is_at ?item ?itemPos) (is_adjacent? ?pos ?itemPos)
-                   (is_direction? ?dir ?itemPos ?pos) )
-      :effects '( (has AG ?item) )
+      :preconds '( 
+        (is_at AG ?pos) (is_facing AG ?dir)
+        ;(not (= ?item AG))
+                   ;(is_at ?item ?itemPos) 
+                   ;(is+adjacent? ?pos ?itemPos)
+                   ; (is_direction? ?dir ?itemPos ?pos) 
+                   (not (has_item AG ?item))
+                   )
+      :effects '( (has_item AG ?item) )
       :time-required 1
       :value 5
       )
@@ -284,9 +290,11 @@
 (setq takeItem.actual 
   (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
   :startconds '( (is_at AG ?pos) (is_facing AG ?dir)
-                   (is_at ?item ?itemPos) (is_adjacent? ?pos ?itemPos)
-                   (is_direction? ?dir ?itemPos ?pos) )
-  :adds '( (has AG ?item) )
+                   (is+adjacent? ?pos ?itemPos) (is_at ?item ?itemPos) 
+                   ;(is_direction? ?dir ?itemPos ?pos)
+                   (not (has_item AG ?item)))
+  :stopconds '( (has_item AG ?item) )
+  :adds '( (has_item AG ?item) )
   )
 )
 
