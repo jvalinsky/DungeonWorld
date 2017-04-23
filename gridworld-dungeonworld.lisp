@@ -65,6 +65,15 @@
    (is_at AG main&5&5)
    (eyes_open AG)
    (can_see AG (apple3@main apple1@main))
+
+   (is_happy AG)
+   (not (is_scared AG))
+   (not (is_surprised AG))
+
+   (is_hungry_to_degree AG 4.0)
+   (is_thirsty_to_degree AG 2.0)
+   (is_tired_to_degree AG 0.0)
+  
   )
  nil
 )
@@ -191,6 +200,26 @@
 	:deletes '( (can_see AG ?objects) ) 
     :adds '( (can_see AG (saw? ?pos ?dir))  )
 	)
+)
+
+(setq takeItem
+      (make-op :name 'takeItem :pars '(?dir ?pos ?item ?itemPos)
+      :preconds '( (has_free_space AG) (is_at AG ?pos) (is_facing AG ?dir)
+                   (is_at ?item ?itemPos) (is_connected? ?pos ?itemPos)
+                   (is_direction? ?dir ?itemPos ?pos) )
+      :effects '( (has AG ?item) )
+      :time-required 1
+      :value 5
+      )
+)
+
+(setq takeItem.actual 
+  (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
+  :startconds '( (has_free_space AG) (is_at AG ?pos) (is_facing AG ?dir)
+                   (is_at ?item ?itemPos) (is_connected? ?pos ?itemPos)
+                   (is_direction? ?dir ?itemPos ?pos) )
+  :adds '( (has AG ?item) )
+  )
 )
 
 
