@@ -223,7 +223,7 @@
 )
 
 ;Helper to see if two points are adjacent
-(defun is+adjacent? (?x ?y)
+(defun is_adjacent? (?x ?y)
   (format t "~S is_adjacent? ~S~%" ?x ?y)
   (not (null (find
     (+
@@ -290,10 +290,11 @@
   )
 
 (setq takeItem
-      (make-op :name 'takeItem :pars '(?pos ?itemPos ?item)
+      (make-op :name 'takeItem :pars '(?pos ?itemPos ?dir ?item)
       :preconds '(
         (is_at AG ?pos) 
-        (is+adjacent? ?pos ?itemPos)
+        (is_adjacent? ?pos ?itemPos)
+        ;(is_direction ?dir ?itemPos ?pos)
         (is_at ?item ?itemPos) 
         (not (has AG ?item))
         (can_take ?item)
@@ -306,10 +307,11 @@
 )
 
 (setq takeItem.actual 
-  (make-op.actual :name 'takeItem.actual :pars '(?pos ?itemPos ?item)
+  (make-op.actual :name 'takeItem.actual :pars '(?pos ?itemPos ?dir ?item)
   :startconds '( 
         (is_at AG ?pos) 
-        (is+adjacent? ?pos ?itemPos)
+        (is_adjacent? ?pos ?itemPos)
+        ;(is_direction ?dir ?itemPos ?pos)
         (can_take ?item)
         (is_at ?item ?itemPos) 
         (not (has AG ?item))
