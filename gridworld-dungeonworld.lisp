@@ -210,7 +210,7 @@
 
 ;Helper to see if two points are adjacent
 (defun is_adjacent? (?x ?y)
-  (equal 1
+  (find
     (+
       (abs
         (-
@@ -220,51 +220,54 @@
         (-
           (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
           (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+    '(0 1)
 )
 
 ;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
 (defun is_direction? (?dir ?x ?y)
-  (cond 
-    ((equal ?dir 'EAST)
-      (and
-        (equal 0
-          (-
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-        (> 0
-          (-
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
-    ((equal ?dir 'WEST)
-      (and
-        (equal 0
-          (-
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-        (< 0
-          (-
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
-    ((equal ?dir 'NORTH)
-      (and
-        (> 0
-          (-
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-        (equal 0
-          (-
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
-    ((equal ?dir 'SOUTH)
-      (and
-        (< 0
-          (-
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-        (equal 0
-          (-
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
+  (if (equal ?x ?y)
+    t
+    (cond 
+      ((equal ?dir 'EAST)
+        (and
+          (equal 0
+            (-
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+          (< 0
+            (-
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+      ((equal ?dir 'WEST)
+        (and
+          (equal 0
+            (-
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+          (> 0
+            (-
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+      ((equal ?dir 'NORTH)
+        (and
+          (< 0
+            (-
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+          (equal 0
+            (-
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+      ((equal ?dir 'SOUTH)
+        (and
+          (> 0
+            (-
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+          (equal 0
+            (-
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   ))
 
 (setq takeItem
