@@ -65,6 +65,15 @@
    (is_at AG main&5&5)
    (eyes_open AG)
    (can_see AG (apple3@main apple1@main))
+
+   (is_happy AG)
+   (not (is_scared AG))
+   (not (is_surprised AG))
+
+   (is_hungry_to_degree AG 4.0)
+   (is_thirsty_to_degree AG 2.0)
+   (is_tired_to_degree AG 0.0)
+  
   )
  nil
 )
