@@ -1,6 +1,6 @@
 ; returns a list of points for a room
 ; HELPER FUNCTIONS FOR BUILDING MAP
-; symbol format ?room-?x-?y
+; symbol format ?room&?x&?y
 ;(require :regexp2)
 
 (defparameter *room-facts* (make-hash-table :test #'equal))

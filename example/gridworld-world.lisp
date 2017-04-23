@@ -266,18 +266,18 @@
 ;; This is the `model' version.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (setq walk 
-	(make-op :name 'walk :pars '(?x ?y ?z ?f)
+	(make-op :name 'walk :pars '(?x ?y ?f)
 	:preconds '((is_at AG ?x)        
-				(is_on ?x ?z)        
-				(is_on ?y ?z) (point ?y)
+				(is_connected ?x ?y)        
+				(point ?y)
 				(navigable ?z)
                 (is_tired_to_degree AG ?f) )
     :effects '((is_at AG ?y) 
     		   (not (is_at AG ?x))
-               ;(is_tired_to_degree AG (+ ?f 0.5))
-               (is_tired_to_degree AG (+ ?f (* 0.5 (distance_from+to+on? ?x ?y ?z))))  
+               (is_tired_to_degree AG (+ ?f 0.5))
+               ;(is_tired_to_degree AG (+ ?f (* 0.5 (distance_from+to+on? ?x ?y ?z))))  
                (not (is_tired_to_degree AG ?f)) )
-    :time-required '(distance_from+to+on? ?x ?y ?z)
+    :time-required 1
     :value '(- 3 ?f)
     )
 )

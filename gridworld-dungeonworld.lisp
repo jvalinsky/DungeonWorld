@@ -17,7 +17,7 @@
 (def-object 'robot '(is_animate can_talk))
 (def-object 'apple '(is_inanimate is_edible (has_cost 3.0)))
 
-(def-object 'box '(is_openable (has_item 'apple)))
+(def-object 'box '(is_inanimate is_openable (has_item 'apple)))
 
 (place-object 'box@main 'box 'main&0&0 0
   nil 
@@ -191,6 +191,47 @@
 	:deletes '( (can_see AG ?objects) ) 
     :adds '( (can_see AG (saw? ?pos ?dir))  )
 	)
+)
+
+
+; Modified from orginal file
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; With operator walk, AG walks from point ?x to point ?y, with 
+;; initial fatigue level ?f, assuming speed of one unit per time step.
+;; This is the `model' version.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun nextPos? (?curPos ?dir)
+  "return the next position after action"
+  (cond 
+    ((equal ?dir 'EAST)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (+ 1 (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos))))) 
+                                          (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
+    ((equal ?dir 'WEST)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (- 1 (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos))))) 
+                                          (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
+    ((equal ?dir 'NORTH)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (cadr (split-regexp "&" (symbol-name ?curPos)))
+                                          (+ 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))))
+    ((equal ?dir 'SOUTH)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (cadr (split-regexp "&" (symbol-name ?curPos)))
+                                          (- 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))))
+  ))
+
+(setq walk 
+  (make-op :name 'walk :pars '(?x ?dir ?f)
+  :preconds '((is_at AG ?x)         
+              (is_tired_to_degree AG ?f) )
+    :effects '((is_at AG (nextPos? ?x ?dir))
+              (not (is_at AG ?x))
+               (is_tired_to_degree AG (+ ?f 0.5))
+               (not (is_tired_to_degree AG ?f)) )
+    :time-required 1
+    :value '(- 3 ?f)
+    )
 )
 
 ; The following is from the gridworld-world.lisp file (for testing purposes right now):
