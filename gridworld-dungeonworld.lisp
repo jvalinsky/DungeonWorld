@@ -394,5 +394,5 @@
 			   (says+to+at_time AG (that (answer_to_whq.actual? ?q)) USER (current_time?))
 			   (not (wants USER (that (tells AG USER (answer_to_whq ?q)))))
 			 )
-	)	
+	)
 )
