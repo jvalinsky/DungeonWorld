@@ -77,6 +77,7 @@
     nil 
 )
 
+
 (place-object 'AG 'robot 'main&5&5 0
  nil
  '(
@@ -96,8 +97,6 @@
   )
  nil
 )
-
-
 
 
 (setq *operators* '(takeItem turn+north turn+south turn+west turn+east answer_user_whq walk))
