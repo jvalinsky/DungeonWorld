@@ -21,24 +21,37 @@
 
 (place-object 'box1@main 'box 'main&0&0 0
   '((apple apple0@main))
-  '((is_openable box1@main)) 
+  '(
+    (is_openable box1@main)
+
+    (can_take box1@main)
+    
+    ) 
   nil)
 
-(place-object 'box2@main 'box 'main&0&5 0
+(place-object 'box2@main 'box 'main&5&5 0
   '((bomb bomb0@main))
-  '((is_openable box2@main)) 
+  '(
+    (is_openable box2@main)
+    (can_take box2@main)
+    
+    ) 
   nil)
 
 (place-object 'apple1@main 'apple 'main&1&5 0 
 	nil 
-	'((is_edible apple1@main) 
+	'(
+      (is_edible apple1@main) 
+    (can_take apple1@main)
 	 )
     nil 
 )
 
 (place-object 'apple2@main 'apple 'main&7&5 0 
 	nil 
-	'((is_edible apple2@main) 
+	'(
+      (is_edible apple2@main) 
+    (can_take apple1@main)
 	 )
     nil 
 )
@@ -64,6 +77,7 @@
     nil 
 )
 
+
 (place-object 'AG 'robot 'main&5&5 0
  nil
  '(
@@ -85,9 +99,8 @@
 )
 
 
+(setq *operators* '(takeItem turn+north turn+south turn+west turn+east answer_user_whq walk))
 
-; (find-location 'AG *world-facts*)
-(setq *operators* '(turn+north turn+south turn+west turn+east answer_user_whq ))
 (setq *search-beam*
 	(list (cons 5 *operators*) (cons 4 *operators*) (cons 3 *operators*) ))
 ; ======================================================================================================
@@ -209,8 +222,9 @@
 )
 
 ;Helper to see if two points are adjacent
-(defun is_adjacent? (?x ?y)
-  (find
+(defun is+adjacent? (?x ?y)
+  (format t "~S is_adjacent? ~S~%" ?x ?y)
+  (not (null (find
     (+
       (abs
         (-
@@ -219,8 +233,8 @@
       (abs
         (-
           (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-    '(0 1)
+          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
+    '(0 1))))
 )
 
 ;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
@@ -270,23 +284,38 @@
                 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   ))
 
+(defun equal? (x y)
+  (equal x y)
+  )
+
 (setq takeItem
-      (make-op :name 'takeItem :pars '(?dir ?pos ?item ?itemPos)
-      :preconds '( (is_at AG ?pos) (is_facing AG ?dir)
-                   (is_at ?item ?itemPos) (is_adjacent? ?pos ?itemPos)
-                   (is_direction? ?dir ?itemPos ?pos) )
-      :effects '( (has AG ?item) )
+      (make-op :name 'takeItem :pars '(?pos ?itemPos ?item)
+      :preconds '(
+        (is_at AG ?pos) 
+        (is+adjacent? ?pos ?itemPos)
+        (is_at ?item ?itemPos) 
+        ;(not (has_item AG ?item))
+        (can_take ?item)
+        (not (equal? AG ?item))
+                   )
+      :effects '( (has_item AG ?item) )
       :time-required 1
-      :value 5
+      :value 4
       )
 )
 
 (setq takeItem.actual 
-  (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
-  :startconds '( (is_at AG ?pos) (is_facing AG ?dir)
-                   (is_at ?item ?itemPos) (is_adjacent? ?pos ?itemPos)
-                   (is_direction? ?dir ?itemPos ?pos) )
-  :adds '( (has AG ?item) )
+  (make-op.actual :name 'takeItem.actual :pars '(?pos ?itemPos ?item)
+  :startconds '( 
+        (is_at AG ?pos) 
+        (is+adjacent? ?pos ?itemPos)
+        (can_take ?item)
+        (is_at ?item ?itemPos) 
+        ;(not (has_item AG ?item))
+        (not (equal? ?item AG))
+                   )
+  :stopconds '( (has_item AG ?item) )
+  :adds '( (has_item AG ?item) )
   )
 )
 
@@ -299,6 +328,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun nextPos? (?curPos ?dir)
   "return the next position after action"
+  (format t "pos: ~a dir: ~a ~%" ?curPos ?dir)
   (cond 
     ((equal ?dir 'EAST)
       (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
@@ -306,7 +336,7 @@
                                           (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
     ((equal ?dir 'WEST)
       (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
-                                          (- 1 (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos))))) 
+                                          (- (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos)))) 1) 
                                           (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
     ((equal ?dir 'NORTH)
       (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
@@ -315,22 +345,53 @@
     ((equal ?dir 'SOUTH)
       (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
                                           (cadr (split-regexp "&" (symbol-name ?curPos)))
-                                          (- 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))))
+                                          (- (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))) 1)))))
   ))
 
 (setq walk 
   (make-op :name 'walk :pars '(?x ?dir ?f)
-  :preconds '((is_at AG ?x)  
-              (point (nextPos? ?x ?dir))        
+  :preconds '((is_facing AG ?dir)
+              (is_at AG ?x)  
               (is_tired_to_degree AG ?f))
-    :effects '((is_at AG (nextPos? ?x ?dir))
+    :effects '( 
+                (is_at AG (nextPos? ?x ?dir) )
               (not (is_at AG ?x))
                (is_tired_to_degree AG (+ ?f 0.5))
-               (not (is_tired_to_degree AG ?f)) )
+               (not (is_tired_to_degree AG ?f)) 
+               )
     :time-required 1
-    :value '(- 3 ?f)
+    :value 3
     )
 )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; With operator walk.actual, AG walks from point ?x to point ?y on road ?z,  
+;; with initial fatigue level ?f, assuming speed of one unit per time step.
+;; This is the `actual' version.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq walk.actual 
+	(make-op.actual :name 'walk.actual :pars '(?x ?dir ?f)
+	:startconds '(
+                  (is_facing AG ?dir)
+                  (is_at AG ?x)  
+              (is_tired_to_degree AG ?f)
+              )
+    :stopconds '(
+    			 (is_at AG (nextPos? ?x ?dir)) 
+                 )
+    :deletes '((is_at AG ?x)
+    		   (is_tired_to_degree AG ?f))
+    :adds '((is_at AG (nextPos? ?x ?dir))
+              (not (is_at AG ?x))
+               (is_tired_to_degree AG (+ ?f 0.5))
+               (not (is_tired_to_degree AG ?f)) 
+               )
+    )
+)
+
+
 
 ; The following is from the gridworld-world.lisp file (for testing purposes right now):
 
