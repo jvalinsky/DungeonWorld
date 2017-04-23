@@ -7,9 +7,9 @@
 
 (let* ((main (def-room 'main 0 10 0 10))
        (main-points (car main))
-       (main-paths (car (car main))))
-  (append *dungeonworld-points* main-points)
-  (append *dungeonworld-paths* main-paths))
+       (main-paths (cadr main)))
+  (setq *dungeonworld-points* main-points)
+  (setq *dungeonworld-paths* main-paths))
 
 (def-roadmap *dungeonworld-points* *dungeonworld-paths*)
 
@@ -224,7 +224,7 @@
 (setq walk 
   (make-op :name 'walk :pars '(?x ?dir ?f)
   :preconds '((is_at AG ?x)         
-              (is_tired_to_degree AG ?f) )
+              (is_tired_to_degree AG ?f))
     :effects '((is_at AG (nextPos? ?x ?dir))
               (not (is_at AG ?x))
                (is_tired_to_degree AG (+ ?f 0.5))
