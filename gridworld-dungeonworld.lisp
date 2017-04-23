@@ -271,28 +271,33 @@
                 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   ))
 
+(defun equal? (x y)
+  (equal x y)
+  )
+
 (setq takeItem
       (make-op :name 'takeItem :pars '(?dir ?pos ?item ?itemPos)
       :preconds '( 
         (is_at AG ?pos) (is_facing AG ?dir)
-        ;(not (= ?item AG))
-                   ;(is_at ?item ?itemPos) 
-                   ;(is+adjacent? ?pos ?itemPos)
+        (not (equal? ?item AG))
+                   (is_at ?item ?pos) 
+                   (is+adjacent? ?pos ?pos)
                    ; (is_direction? ?dir ?itemPos ?pos) 
-                   (not (has_item AG ?item))
+                   ;(not (has_item AG ?item))
                    )
       :effects '( (has_item AG ?item) )
       :time-required 1
-      :value 5
+      :value 2
       )
 )
 
 (setq takeItem.actual 
   (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
   :startconds '( (is_at AG ?pos) (is_facing AG ?dir)
-                   (is+adjacent? ?pos ?itemPos) (is_at ?item ?itemPos) 
+                   (is+adjacent? ?pos ?itemPos) ;(is_at ?item ?itemPos) 
                    ;(is_direction? ?dir ?itemPos ?pos)
-                   (not (has_item AG ?item)))
+                   ;(not (has_item AG ?item))
+                   )
   :stopconds '( (has_item AG ?item) )
   :adds '( (has_item AG ?item) )
   )
