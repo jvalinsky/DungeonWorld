@@ -5,7 +5,7 @@
 (defvar *dungeonworld-points* '())
 (defvar *dungeonworld-paths* '())
 
-(let* ((main (def-room 'main 0 10 0 10))
+(let* ((main (def-room 'main 0 5 0 5))
        (main-points (car main))
        (main-paths (cadr main)))
   (setq *dungeonworld-points* main-points)
@@ -29,7 +29,7 @@
     ) 
   nil)
 
-(place-object 'box2@main 'box 'main&5&5 0
+(place-object 'box2@main 'box 'main&3&3 0
   '((bomb bomb0@main))
   '(
     (is_openable box2@main)
@@ -47,7 +47,7 @@
     nil 
 )
 
-(place-object 'apple2@main 'apple 'main&7&5 0 
+(place-object 'apple2@main 'apple 'main&3&5 0 
 	nil 
 	'(
       (is_edible apple2@main) 
@@ -63,14 +63,14 @@
     nil 
 )
 
-(place-object 'apple4@main 'apple 'main&5&6 0 
+(place-object 'apple4@main 'apple 'main&5&4 0 
 	nil 
 	'((is_edible apple4@main) 
 	 )
     nil 
 )
 
-(place-object 'apple5@main 'apple 'main&5&6 0 
+(place-object 'apple5@main 'apple 'main&5&4 0 
 	nil 
 	'((is_edible apple5@main) 
 	 )
@@ -78,11 +78,11 @@
 )
 
 
-(place-object 'AG 'robot 'main&5&5 0
+(place-object 'AG 'robot 'main&3&3 0
  nil
  '(
    (is_facing AG SOUTH)
-   (is_at AG main&5&5)
+   ;(is_at AG main&3&3)
    (eyes_open AG)
    (can_see AG (apple3@main apple1@main))
 
@@ -93,6 +93,7 @@
    (is_hungry_to_degree AG 4.0)
    (is_thirsty_to_degree AG 2.0)
    (is_tired_to_degree AG 0.0)
+   ;(has AG nil)
   
   )
  nil
@@ -294,11 +295,11 @@
         (is_at AG ?pos) 
         (is+adjacent? ?pos ?itemPos)
         (is_at ?item ?itemPos) 
-        ;(not (has_item AG ?item))
+        (not (has AG ?item))
         (can_take ?item)
         (not (equal? AG ?item))
                    )
-      :effects '( (has_item AG ?item) )
+      :effects '( (has AG ?item) )
       :time-required 1
       :value 4
       )
@@ -311,11 +312,11 @@
         (is+adjacent? ?pos ?itemPos)
         (can_take ?item)
         (is_at ?item ?itemPos) 
-        ;(not (has_item AG ?item))
+        (not (has AG ?item))
         (not (equal? ?item AG))
                    )
-  :stopconds '( (has_item AG ?item) )
-  :adds '( (has_item AG ?item) )
+  :stopconds '( (has AG ?item) )
+  :adds '( (has AG ?item) )
   )
 )
 
