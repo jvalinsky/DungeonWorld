@@ -193,6 +193,26 @@
 	)
 )
 
+(setq takeItem
+      (make-op :name 'takeItem :pars '(?dir ?pos ?item ?itemPos)
+      :preconds '( (has_free_space AG) (is_at AG ?pos) (is_facing AG ?dir)
+                   (is_at ?item ?itemPos) (is_connected? ?pos ?itemPos)
+                   (is_direction? ?dir ?itemPos ?pos) )
+      :effects '( (has AG ?item) )
+      :time-required 1
+      :value 5
+      )
+)
+
+(setq takeItem.actual 
+  (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
+  :startconds '( (has_free_space AG) (is_at AG ?pos) (is_facing AG ?dir)
+                   (is_at ?item ?itemPos) (is_connected? ?pos ?itemPos)
+                   (is_direction? ?dir ?itemPos ?pos) )
+  :adds '( (has AG ?item) )
+  )
+)
+
 
 ; Modified from orginal file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
