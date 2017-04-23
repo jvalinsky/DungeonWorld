@@ -24,7 +24,7 @@ CSC 291 Final Project
 		* ?x2: an __integer__ indicating x coordinate of the lower right corner
 		* ?y1: an __integer__ indicating y coordinate of the upper left corner
 		* ?y2: an __integer__ indicating y coordinate of the lower right corner
-	* Return: a list of points for a room, each in a form of `?room-?x-?y`
+	* Return: a list of points for a room, each in a form of `?room&?x&?y`
 
 * `room-edges-rect-helper` 
 	* helper function for recursively computing the edges in a room that connect each point
@@ -33,7 +33,7 @@ CSC 291 Final Project
 	* Input: ?room ?points
 		* ?room: a __symbol__ indicating the room name
 		* ?points: a list of points previously computed using `room-pts-rect`
-	* Return: a list of edges, each in the form `?room-?x1-?y1_?room-?x2-?y2`
+	* Return: a list of edges, each in the form `?room&?x1&?y1_?room&?x2&?y2`
 * `def-room`
 	* Function that define a room in the simulated world
 	* Input: ?room ?x1 ?x2 ?y1 ?y2

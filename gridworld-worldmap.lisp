@@ -44,7 +44,7 @@
                   (eq 
                     (+ 1 (parse-integer (cadr (split-regexp "&" (symbol-name e)))))
                     (parse-integer (cadr (split-regexp "&" (symbol-name hd))))))))
-          (setf ?lst (append (list (list (intern (concatenate 'string (symbol-name hd) "_" (symbol-name e))) hd 1 e)) ?lst)))) 
+          (setf ?lst (append (list (list (intern (concatenate 'string (symbol-name hd) "$" (symbol-name e))) hd 1 e)) ?lst)))) 
       (room-edges-rect-helper ?room (cdr ?points) ?lst))))
 
 (defun room-edges-rect (?room ?points)
