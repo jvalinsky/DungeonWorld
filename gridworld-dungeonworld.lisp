@@ -16,12 +16,17 @@
 
 (def-object 'robot '(is_animate can_talk))
 (def-object 'apple '(is_inanimate is_edible (has_cost 3.0)))
-
+(def-object 'bomb '(is_explodable (has_damage 10.0)))
 (def-object 'box '(is_inanimate is_openable))
 
-(place-object 'box@main 'box 'main&0&0 0
+(place-object 'box1@main 'box 'main&0&0 0
   '((apple apple0@main))
-  '((is_openable box@main)) 
+  '((is_openable box1@main)) 
+  nil)
+
+(place-object 'box2@main 'box 'main&0&5 0
+  '((bomb bomb0@main))
+  '((is_openable box2@main)) 
   nil)
 
 (place-object 'apple1@main 'apple 'main&1&5 0 
