@@ -7,15 +7,27 @@
 
 (let* ((main (def-room 'main 0 10 0 10))
        (main-points (car main))
-       (main-paths (car (car main))))
-  (append *dungeonworld-points* main-points)
-  (append *dungeonworld-paths* main-paths))
+       (main-paths (cadr main)))
+  (setq *dungeonworld-points* main-points)
+  (setq *dungeonworld-paths* main-paths))
 
 (def-roadmap *dungeonworld-points* *dungeonworld-paths*)
 
 
 (def-object 'robot '(is_animate can_talk))
 (def-object 'apple '(is_inanimate is_edible (has_cost 3.0)))
+(def-object 'bomb '(is_explodable (has_damage 10.0)))
+(def-object 'box '(is_inanimate is_openable))
+
+(place-object 'box1@main 'box 'main&0&0 0
+  '((apple apple0@main))
+  '((is_openable box1@main)) 
+  nil)
+
+(place-object 'box2@main 'box 'main&0&5 0
+  '((bomb bomb0@main))
+  '((is_openable box2@main)) 
+  nil)
 
 (place-object 'apple1@main 'apple 'main&1&5 0 
 	nil 
@@ -54,18 +66,25 @@
 
 (place-object 'AG 'robot 'main&5&5 0
  nil
- '( (is_facing SOUTH)
-    (not (is_facing NORTH))
-    (not (is_facing EAST))
-    (not (is_facing WEST))
-    (can_see AG nil)
-   )
+ '(
+   (is_facing AG SOUTH)
+   (is_at AG main&5&5)
+   (eyes_open AG)
+   (can_see AG (apple3@main apple1@main))
+
+   (is_happy AG)
+   (not (is_scared AG))
+   (not (is_surprised AG))
+
+   (is_hungry_to_degree AG 4.0)
+   (is_thirsty_to_degree AG 2.0)
+   (is_tired_to_degree AG 0.0)
+  
+  )
  nil
 )
 
-(defparameter *room-facts*
-      (make-htable '( (width 'main 10)
-                      (depth 'main 10) )))
+
 
 ; (find-location 'AG *world-facts*)
 (setq *operators* '(turn+north turn+south turn+west turn+east answer_user_whq ))
@@ -76,11 +95,6 @@
 
 ; Perception
 
-(defun width (?room)
-     (caddr (cadr (gethash (list 'width 'that ?room nil) *room-facts*))))
-
-(defun depth (?room)
-     (caddr (cadr (gethash (list 'depth 'that ?room nil) *room-facts*))))
 
 (defun saw? (pos dir)
  (let* ((sym-lst (split-regexp "&" (symbol-name pos)))
@@ -114,86 +128,208 @@
 
 
 (setq turn+north
-      (make-op :name 'turn+north :pars '(?dir ?pos)
-      :preconds '( (not (is_facing NORTH)) (is_facing ?dir) (is_at AG ?pos)) 
-      :effects '( (is_facing NORTH) )
+      (make-op :name 'turn+north :pars '(?dir)
+      :preconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) ) 
+      :effects '( (is_facing AG NORTH) )
       :time-required 1
       :value 3
       )
 )
 
 (setq turn+north.actual 
-	(make-op.actual :name 'turn+north.actual :pars '(?dir ?pos ?objects)
-	:startconds '( (not (is_facing NORTH)) (is_facing ?dir)  (is_at AG ?pos) (can_see AG ?objects))
-    :stopconds '( (is_facing NORTH) )
-	:deletes '( (is_facing ?dir) (not (is_facing NORTH)) (looked) (can_see AG ?objects) )
-    :adds '( (is_facing NORTH) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir)) )
+	(make-op.actual :name 'turn+north.actual :pars '(?dir)
+	:startconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) )
+    :stopconds '( (is_facing AG NORTH) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG NORTH))  )
+    :adds '( (is_facing AG NORTH) (not (is_facing AG ?dir))  )
 	)
 )
 
 (setq turn+south
-      (make-op :name 'turn+south :pars '(?dir ?pos)
-      :preconds '( (not (is_facing SOUTH)) (is_facing ?dir) (is_at AG ?pos))
-      :effects '( (is_facing SOUTH) )
+      (make-op :name 'turn+south :pars '(?dir)
+      :preconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir) )
+      :effects '( (is_facing AG SOUTH) )
       :time-required 1
       :value 3
       )
 )
 
 (setq turn+south.actual 
-	(make-op.actual :name 'turn+south.actual :pars '(?dir ?pos ?objects)
-	:startconds '( (not (is_facing SOUTH)) (is_facing ?dir) (is_at AG ?pos) (can_see AG ?objects) )
-    :stopconds '( (is_facing SOUTH) )
-	:deletes '( (is_facing ?dir) (not (is_facing SOUTH)) (looked) (can_see AG ?objects) )
-    :adds '( (is_facing SOUTH) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir))  )
+	(make-op.actual :name 'turn+south.actual :pars '(?dir)
+	:startconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir) )
+    :stopconds '( (is_facing AG SOUTH) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG SOUTH))  )
+    :adds '( (is_facing AG SOUTH) (not (is_facing AG ?dir))  )
 	)
 )
 
 (setq turn+west
-      (make-op :name 'turn+west :pars '(?dir ?pos)
-      :preconds '( (not (is_facing WEST)) (is_facing ?dir)  (is_at AG ?pos))
-      :effects '( (is_facing WEST)  )
+      (make-op :name 'turn+west :pars '(?dir)
+      :preconds '( (not (is_facing AG WEST)) (is_facing AG ?dir) )
+      :effects '( (is_facing AG WEST)  )
       :time-required 1
       :value 3
       )
 )
 
 (setq turn+west.actual 
-	(make-op.actual :name 'turn+west.actual :pars '(?dir ?pos ?objects)
-	:startconds '( (not (is_facing WEST)) (is_facing ?dir) (is_at AG ?pos) (can_see AG ?objects) )
-    :stopconds '( (is_facing WEST) )
-	:deletes '( (is_facing ?dir) (not (is_facing WEST)) (looked) (can_see AG ?objects) )
-    :adds '( (is_facing WEST) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir)) )
+	(make-op.actual :name 'turn+west.actual :pars '(?dir)
+	:startconds '( (not (is_facing AG WEST)) (is_facing AG ?dir)  )
+    :stopconds '( (is_facing AG WEST) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG WEST)) )
+    :adds '( (is_facing AG WEST) (not (is_facing AG ?dir)) )
 	)
 )
 
 (setq turn+east
-      (make-op :name 'turn+east :pars '(?dir ?pos)
-      :preconds '( (not (is_facing EAST)) (is_facing ?dir) (is_at AG ?pos)  )
-      :effects '( (is_facing EAST) )
+      (make-op :name 'turn+east :pars '(?dir)
+      :preconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) )
+      :effects '( (is_facing AG EAST) )
       :time-required 1
       :value 3
       )
 )
 
 (setq turn+east.actual 
-	(make-op.actual :name 'turn+east.actual :pars '(?dir ?pos ?objects)
-	:startconds '( (not (is_facing EAST)) (is_facing ?dir) (is_at AG ?pos) (can_see AG ?objects) )
-    :stopconds '( (is_facing EAST) )
-	:deletes '( (is_facing ?dir) (not (is_facing EAST)) (looked) (can_see AG ?objects))
-    :adds '( (is_facing EAST) (not (is_facing ?dir)) (can_see AG (saw? ?pos ?dir)) )
+	(make-op.actual :name 'turn+east.actual :pars '(?dir)
+	:startconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) )
+    :stopconds '( (is_facing AG EAST) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG EAST))  )
+    :adds '( (is_facing AG EAST) (not (is_facing AG ?dir)) )
 	)
 )
 
-
 (setq see.actual 
-	(make-op.actual :name 'see.actual :pars '(?pos ?dir ?objects)
-	:startconds '( (is_facing ?dir) (is_at ?pos) (can_see AG ?objects) ) 
-    :starredStopConds '((T)) ;'((looked))
+	(make-op.actual :name 'see.actual :pars '(?dir ?pos ?objects)
+	:startconds '( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 
+    :starredStopConds  '( (not (eyes_open AG)) )
 	:deletes '( (can_see AG ?objects) ) 
-    :starredAdds nil ;'((looked))
-    :adds '( (can_see (saw? ?pos ?dir)) )
+    :adds '( (can_see AG (saw? ?pos ?dir))  )
 	)
+)
+
+;Helper to see if two points are adjacent
+(defun is_adjacent? (?x ?y)
+  (find
+    (+
+      (abs
+        (-
+          (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+          (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+      (abs
+        (-
+          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+    '(0 1)
+)
+
+;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
+(defun is_direction? (?dir ?x ?y)
+  (if (equal ?x ?y)
+    t
+    (cond 
+      ((equal ?dir 'EAST)
+        (and
+          (equal 0
+            (-
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+          (< 0
+            (-
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+      ((equal ?dir 'WEST)
+        (and
+          (equal 0
+            (-
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+          (> 0
+            (-
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+      ((equal ?dir 'NORTH)
+        (and
+          (< 0
+            (-
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+          (equal 0
+            (-
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+      ((equal ?dir 'SOUTH)
+        (and
+          (> 0
+            (-
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+          (equal 0
+            (-
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
+  ))
+
+(setq takeItem
+      (make-op :name 'takeItem :pars '(?dir ?pos ?item ?itemPos)
+      :preconds '( (is_at AG ?pos) (is_facing AG ?dir)
+                   (is_at ?item ?itemPos) (is_adjacent? ?pos ?itemPos)
+                   (is_direction? ?dir ?itemPos ?pos) )
+      :effects '( (has AG ?item) )
+      :time-required 1
+      :value 5
+      )
+)
+
+(setq takeItem.actual 
+  (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
+  :startconds '( (is_at AG ?pos) (is_facing AG ?dir)
+                   (is_at ?item ?itemPos) (is_adjacent? ?pos ?itemPos)
+                   (is_direction? ?dir ?itemPos ?pos) )
+  :adds '( (has AG ?item) )
+  )
+)
+
+
+; Modified from orginal file
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; With operator walk, AG walks from point ?x to point ?y, with 
+;; initial fatigue level ?f, assuming speed of one unit per time step.
+;; This is the `model' version.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun nextPos? (?curPos ?dir)
+  "return the next position after action"
+  (cond 
+    ((equal ?dir 'EAST)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (+ 1 (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos))))) 
+                                          (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
+    ((equal ?dir 'WEST)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (- 1 (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos))))) 
+                                          (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
+    ((equal ?dir 'NORTH)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (cadr (split-regexp "&" (symbol-name ?curPos)))
+                                          (+ 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))))
+    ((equal ?dir 'SOUTH)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (cadr (split-regexp "&" (symbol-name ?curPos)))
+                                          (- 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))))
+  ))
+
+(setq walk 
+  (make-op :name 'walk :pars '(?x ?dir ?f)
+  :preconds '((is_at AG ?x)  
+              (point (nextPos? ?x ?dir))        
+              (is_tired_to_degree AG ?f))
+    :effects '((is_at AG (nextPos? ?x ?dir))
+              (not (is_at AG ?x))
+               (is_tired_to_degree AG (+ ?f 0.5))
+               (not (is_tired_to_degree AG ?f)) )
+    :time-required 1
+    :value '(- 3 ?f)
+    )
 )
 
 ; The following is from the gridworld-world.lisp file (for testing purposes right now):
@@ -261,5 +397,5 @@
 			   (says+to+at_time AG (that (answer_to_whq.actual? ?q)) USER (current_time?))
 			   (not (wants USER (that (tells AG USER (answer_to_whq ?q)))))
 			 )
-	)	
+	)
 )

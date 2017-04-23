@@ -12,7 +12,7 @@
 
 (format t "~% GO ~%")
                 ;Handle the spontaneous fire and flood.
-                ;(handleExtOps)
+                ;(handleExtOps-Dungeon)
                 ; Above line commented out only for opportunic runs
 
 
@@ -63,5 +63,7 @@
                 ;(format t "action-name: ~a~%" action-name)
                 (implement-effects action-name)
         )
+
+      ;(handleExtOps-Dungeon)
 ); end of go!
 
