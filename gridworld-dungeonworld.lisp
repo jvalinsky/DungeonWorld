@@ -17,11 +17,12 @@
 (def-object 'robot '(is_animate can_talk))
 (def-object 'apple '(is_inanimate is_edible (has_cost 3.0)))
 
-(def-object 'box '(is_inanimate is_openable (has_item 'apple)))
+(def-object 'box '(is_inanimate is_openable))
 
 (place-object 'box@main 'box 'main&0&0 0
-  nil 
-  '((is_openable box@main)) nil)
+  '((apple apple0@main))
+  '((is_openable box@main)) 
+  nil)
 
 (place-object 'apple1@main 'apple 'main&1&5 0 
 	nil 
@@ -252,7 +253,8 @@
 
 (setq walk 
   (make-op :name 'walk :pars '(?x ?dir ?f)
-  :preconds '((is_at AG ?x)         
+  :preconds '((is_at AG ?x)  
+              (point (nextPos? ?x ?dir))        
               (is_tired_to_degree AG ?f))
     :effects '((is_at AG (nextPos? ?x ?dir))
               (not (is_at AG ?x))
