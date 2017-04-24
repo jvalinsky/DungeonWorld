@@ -102,6 +102,8 @@
    (is_tired_to_degree AG 0.0)
   
    (not (has_won AG))
+   (not (is_reachable key1@main))
+   (is_in key1@main keybox@main)
 
   )
  nil
@@ -305,9 +307,10 @@
         (is_item ?item)
         (is_at AG ?pos) 
         (is_adjacent? ?pos ?itemPos)
-        (is_at ?item ?itemPos) 
+        (is_at ?item ?itemPos)
         ;(is_direction ?dir ?itemPos ?pos)
         (not (has AG ?item))
+        (is_reachable ?item)
                    )
       :effects '( (has AG ?item) )
       :time-required 1
@@ -324,6 +327,7 @@
         (is_at ?item ?itemPos) 
         ;(is_direction ?dir ?itemPos ?pos)
         (not (has AG ?item))
+        (is_reachable ?item)
                    )
   :stopconds '( (has AG ?item) )
   :adds '( (has AG ?item) )
@@ -331,7 +335,7 @@
 )
 
 (setq openContainer
-      (make-op :name 'openContainer :pars '(?pos ?objPos ?dir ?obj)
+      (make-op :name 'openContainer :pars '(?pos ?objPos ?dir ?obj ?item)
       :preconds '(
         (is_openable ?obj)
         (is_closed ?obj)
@@ -339,15 +343,16 @@
         (is_adjacent? ?pos ?objPos)
         (is_at ?obj ?objPos)
         ;(is_direction ?dir ?objPos ?pos)
+        (is_in ?item ?obj)
       )
-      :effects '( (is_open ?obj) (not (is_closed ?obj)) )
+      :effects '( (is_open ?obj) (not (is_closed ?obj)) (is_reachable ?item) )
       :time-required 1
       :value 4
       )
 )
 
 (setq openContainer.actual 
-  (make-op.actual :name 'openContainer.actual :pars '(?pos ?objPos ?dir ?obj)
+  (make-op.actual :name 'openContainer.actual :pars '(?pos ?objPos ?dir ?obj ?item)
   :startconds '( 
         (is_openable ?obj)
         (is_closed ?obj)
@@ -355,10 +360,11 @@
         (is_adjacent? ?pos ?objPos)
         (is_at ?obj ?objPos)
         ;(is_direction ?dir ?objPos ?pos)
+        (is_in ?item ?obj)
                    )
   :stopconds '( (is_open ?obj) )
-  :deletes '( (is_closed ?obj) )
-  :adds '( (is_open ?obj) )
+  :deletes '( (is_closed ?obj) (not(is_reachable ?item)) )
+  :adds '( (is_open ?obj) (is_reachable ?item) )
   )
 )
 
