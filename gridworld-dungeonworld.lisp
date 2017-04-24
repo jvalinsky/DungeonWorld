@@ -112,7 +112,6 @@
     nil 
 )
 
-;'( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 
 
 (place-object 'AG 'robot 'main&3&3 0
  nil
@@ -165,9 +164,11 @@
                 ((equal dir 'NORTH) y)
                 ((equal dir 'SOUTH) ey)
                 ((equal dir 'WEST) x)
-                ((equal dir 'EAST) ex))))
+                ((equal dir 'EAST) ex)))
+       objects
+       )
    ;(format t "bounds: ~a~%" b)
-   (remove 'AG (loop for n from begin to end
+   (setq objects (remove 'AG (loop for n from begin to end
          append
             (let* ((xp (if (or (equal dir 'NORTH) (equal dir 'SOUTH)) n x))
                    (yp (if (or (equal dir 'EAST) (equal dir 'WEST)) n y))
@@ -177,7 +178,9 @@
                    (nobjs (car hval))
                    (pred (cdr hval))
                    (objs (mapcar 'cadr pred)))
-              objs)))))
+              objs))))
+   (mapcar #'(lambda (o) (push o *visited-objects*)) objects)
+   objects))
 
 
 
