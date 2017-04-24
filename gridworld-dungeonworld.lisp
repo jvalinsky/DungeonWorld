@@ -19,7 +19,7 @@
 (def-object 'bomb '(is_explodable is_item (has_damage 10.0)))
 (def-object 'box '(is_inanimate is_openable))
 (def-object 'door '(is_inanimate is_accessible))
-(def-object 'key '(is_inanimate can_take))
+(def-object 'key '(is_inanimate is_item))
 
 
 (place-object 'door1@main 'door 'main&3&2 0 ;; like a door to go through a portal in the middle of a room
@@ -303,7 +303,7 @@
 
 (defun checkKey? (?item)
   (if (equal (subseq  (string ?item) 0 3) "key")
-    20
+    20 ;; if the item is a key, give it 20 as value
     8
     ))
 
