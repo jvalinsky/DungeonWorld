@@ -156,13 +156,13 @@
        (ex (cadr b))
        (ey (cadddr b))
        (begin (cond 
-                ((equal dir 'NORTH) 0)
-                ((equal dir 'SOUTH) y)
+                ((equal dir 'NORTH) y)
+                ((equal dir 'SOUTH) 0)
                 ((equal dir 'WEST)  0)
                 ((equal dir 'EAST)  x)))
        (end (cond 
-                ((equal dir 'NORTH) y)
-                ((equal dir 'SOUTH) ey)
+                ((equal dir 'NORTH) ey)
+                ((equal dir 'SOUTH) y)
                 ((equal dir 'WEST) x)
                 ((equal dir 'EAST) ex)))
        objects
@@ -170,8 +170,8 @@
    ;(format t "bounds: ~a~%" b)
    (setq objects (remove 'AG (loop for n from begin to end
          append
-            (let* ((xp (if (or (equal dir 'NORTH) (equal dir 'SOUTH)) n x))
-                   (yp (if (or (equal dir 'EAST) (equal dir 'WEST)) n y))
+            (let* ((yp (if (or (equal dir 'NORTH) (equal dir 'SOUTH)) n y))
+                   (xp (if (or (equal dir 'EAST) (equal dir 'WEST)) n x))
                    (plst (list ?room xp yp))
                    (point (intern (format nil "~{~a~^&~}" plst)))
                    (hval  (gethash (list 'is_at nil point) *world-facts*))
