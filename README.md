@@ -33,7 +33,7 @@ CSC 291 Final Project
 	* Input: ?room ?points
 		* ?room: a __symbol__ indicating the room name
 		* ?points: a list of points previously computed using `room-pts-rect`
-	* Return: a list of edges, each in the form `?room&?x1&?y1_?room&?x2&?y2`
+	* Return: a list of edges, each in the form `?room&?x1&?y1$?room&?x2&?y2`
 * `def-room`
 	* Function that define a room in the simulated world
 	* Input: ?room ?x1 ?x2 ?y1 ?y2
