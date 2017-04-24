@@ -55,7 +55,7 @@
 	 )
     nil 
 )
-
+#|
 (place-object 'apple2@main 'apple 'main&3&3 0 
 	nil 
 	'(
@@ -63,7 +63,7 @@
 	 )
     nil 
 )
-
+|#
 (place-object 'apple3@main 'apple 'main&5&1 0 
 	nil 
 	'(
@@ -113,11 +113,10 @@
 )
 
 
-(place-object 'AG 'robot 'main&3&3 0
+(place-object 'AG 'robot 'main&3&2 0
  nil
  '(
    (is_facing AG SOUTH)
-   (is_at AG main&3&3)
    (eyes_open AG)
    (can_see AG see@placeholder)
 
@@ -190,7 +189,7 @@
       :preconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) ) 
       :effects '( (is_facing AG NORTH) )
       :time-required 1
-      :value 3
+      :value 1
       )
 )
 
@@ -208,7 +207,7 @@
       :preconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir) )
       :effects '( (is_facing AG SOUTH) )
       :time-required 1
-      :value 3
+      :value 1
       )
 )
 
@@ -226,7 +225,7 @@
       :preconds '( (not (is_facing AG WEST)) (is_facing AG ?dir) )
       :effects '( (is_facing AG WEST)  )
       :time-required 1
-      :value 3
+      :value 1
       )
 )
 
@@ -244,7 +243,7 @@
       :preconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) )
       :effects '( (is_facing AG EAST) )
       :time-required 1
-      :value 3
+      :value 1
       )
 )
 
@@ -257,16 +256,7 @@
 	)
 )
 
-#|
-(setq see
-      (make-op :name 'see :pars '(?dir ?pos ?objects)
-      :preconds  '((eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects)); (hack_to_keep_false) ) 
-      :effects '( (can_see AG (saw? ?pos ?dir))  )
-      :time-required 1
-      :value 0
-      )
-)
-|#
+
 (setq see.actual 
 	(make-op.actual :name 'see.actual :pars '(?dir ?pos ?objects)
 	:startconds '( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 
@@ -292,7 +282,8 @@
 
 ;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
 (defun is_direction? (?dir ?x ?y)
-  (cond 
+  (cond
+    ((equal ?x ?y) T)
     ((equal ?dir 'NORTH)
       (and
         (equal 0
@@ -336,9 +327,9 @@
   )
 
 (defun checkKey? (?item)
-  (if (equal (subseq  (string ?item) 0 3) "key")
+  (if (equal (subseq  (symbol-name ?item) 0 3) "KEY")
     20 ;; if the item is a key, give it 20 as value
-    8
+    4
     ))
 
 
@@ -391,7 +382,7 @@
       )
       :effects '( (is_open ?obj) (not (is_hidden ?item)) )
       :time-required 1
-      :value 4
+      :value 5
       )
 )
 
@@ -500,7 +491,7 @@
                (not (is_tired_to_degree AG ?f)) 
                )
     :time-required 1
-    :value '(- 3 ?f)
+    :value 1;'(- 3 ?f)
     )
 )
 
