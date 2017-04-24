@@ -293,7 +293,7 @@
 ;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
 (defun is_direction? (?dir ?x ?y)
   (cond 
-    ((equal ?dir 'EAST)
+    ((equal ?dir 'NORTH)
       (and
         (equal 0
           (-
@@ -303,7 +303,7 @@
           (-
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-    ((equal ?dir 'WEST)
+    ((equal ?dir 'SOUTH)
       (and
         (equal 0
           (-
@@ -313,7 +313,7 @@
           (-
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-    ((equal ?dir 'NORTH)
+    ((equal ?dir 'EAST)
       (and
         (< 0
           (-
@@ -323,7 +323,7 @@
           (-
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-    ((equal ?dir 'SOUTH)
+    ((equal ?dir 'WEST)
       (and
         (> 0
           (-
