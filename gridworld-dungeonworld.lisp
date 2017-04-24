@@ -22,21 +22,18 @@
 (place-object 'box1@main 'box 'main&0&0 0
   '((apple apple0@main))
   '(
-    (is_openable box1@main)
     ) 
   nil)
 
 (place-object 'box2@main 'box 'main&3&3 0
   '((bomb bomb0@main))
   '(
-    (is_openable box2@main)
     ) 
   nil)
 
 (place-object 'apple1@main 'apple 'main&1&5 0 
 	nil 
 	'(
-      (is_edible apple1@main)
 	 )
     nil 
 )
@@ -44,28 +41,27 @@
 (place-object 'apple2@main 'apple 'main&3&5 0 
 	nil 
 	'(
-      (is_edible apple2@main)
 	 )
     nil 
 )
 
 (place-object 'apple3@main 'apple 'main&5&1 0 
 	nil 
-	'((is_edible apple3@main) 
+	'(
 	 )
     nil 
 )
 
 (place-object 'apple4@main 'apple 'main&5&4 0 
 	nil 
-	'((is_edible apple4@main) 
+	'(
 	 )
     nil 
 )
 
 (place-object 'apple5@main 'apple 'main&5&4 0 
 	nil 
-	'((is_edible apple5@main) 
+	'(
 	 )
     nil 
 )
@@ -86,14 +82,16 @@
    (is_hungry_to_degree AG 4.0)
    (is_thirsty_to_degree AG 2.0)
    (is_tired_to_degree AG 0.0)
-   ;(has AG nil)
+
+   (is_closed box1@main)
+   (is_closed box2@main)
   
   )
  nil
 )
 
 
-(setq *operators* '(takeItem turn+north turn+south turn+west turn+east answer_user_whq walk))
+(setq *operators* '(openContainer takeItem walk turn+north turn+south turn+west turn+east answer_user_whq))
 
 (setq *search-beam*
 	(list (cons 5 *operators*) (cons 4 *operators*) (cons 3 *operators*) ))
@@ -217,7 +215,6 @@
 
 ;Helper to see if two points are adjacent
 (defun is_adjacent? (?x ?y)
-  (format t "~S is_adjacent? ~S~%" ?x ?y)
   (not (null (find
     (+
       (abs
@@ -278,20 +275,15 @@
                 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   ))
 
-(defun equal? (x y)
-  (equal x y)
-  )
-
 (setq takeItem
       (make-op :name 'takeItem :pars '(?pos ?itemPos ?dir ?item)
       :preconds '(
+        (is_item ?item)
         (is_at AG ?pos) 
         (is_adjacent? ?pos ?itemPos)
-        ;(is_direction ?dir ?itemPos ?pos)
         (is_at ?item ?itemPos) 
+        ;(is_direction ?dir ?itemPos ?pos)
         (not (has AG ?item))
-        (is_item ?item)
-        (not (equal? AG ?item))
                    )
       :effects '( (has AG ?item) )
       :time-required 1
@@ -301,17 +293,48 @@
 
 (setq takeItem.actual 
   (make-op.actual :name 'takeItem.actual :pars '(?pos ?itemPos ?dir ?item)
-  :startconds '( 
+  :startconds '(
+        (is_item ?item)
         (is_at AG ?pos) 
         (is_adjacent? ?pos ?itemPos)
-        ;(is_direction ?dir ?itemPos ?pos)
-        (is_item ?item)
         (is_at ?item ?itemPos) 
+        ;(is_direction ?dir ?itemPos ?pos)
         (not (has AG ?item))
-        (not (equal? ?item AG))
                    )
   :stopconds '( (has AG ?item) )
   :adds '( (has AG ?item) )
+  )
+)
+
+(setq openContainer
+      (make-op :name 'openContainer :pars '(?pos ?objPos ?dir ?obj)
+      :preconds '(
+        (is_openable ?obj)
+        (is_closed ?obj)
+        (is_at AG ?pos)
+        (is_adjacent? ?pos ?objPos)
+        (is_at ?obj ?objPos)
+        ;(is_direction ?dir ?objPos ?pos)
+      )
+      :effects '( (is_open ?obj) (not (is_closed ?obj)) )
+      :time-required 1
+      :value 4
+      )
+)
+
+(setq openContainer.actual 
+  (make-op.actual :name 'openContainer.actual :pars '(?pos ?objPos ?dir ?obj)
+  :startconds '( 
+        (is_openable ?obj)
+        (is_closed ?obj)
+        (is_at AG ?pos)
+        (is_adjacent? ?pos ?objPos)
+        (is_at ?obj ?objPos)
+        ;(is_direction ?dir ?objPos ?pos)
+                   )
+  :stopconds '( (is_open ?obj) )
+  :deletes '( (is_closed ?obj) )
+  :adds '( (is_open ?obj) )
   )
 )
 
@@ -324,7 +347,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun nextPos? (?curPos ?dir)
   "return the next position after action"
-  (format t "pos: ~a dir: ~a ~%" ?curPos ?dir)
   (cond 
     ((equal ?dir 'EAST)
       (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
