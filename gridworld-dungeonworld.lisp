@@ -18,7 +18,16 @@
 (def-object 'apple '(is_inanimate is_edible (has_cost 3.0)))
 (def-object 'bomb '(is_explodable (has_damage 10.0)))
 (def-object 'box '(is_inanimate is_openable))
+(def-object 'door '(is_inanimate is_accessible))
+(def-object 'key '(is_inanimate can_take))
 
+
+(place-object 'door1@main 'door 'main&3&2 0 ;; like a door to go through a portal in the middle of a room
+    nil
+    '(
+        (is_accessible door1@main))
+    nil)
+#|
 (place-object 'box1@main 'box 'main&0&0 0
   '((apple apple0@main))
   '(
@@ -29,7 +38,7 @@
     ) 
   nil)
 
-(place-object 'box2@main 'box 'main&3&3 0
+(place-object 'box2@main 'box 'main&4&4 0
   '((bomb bomb0@main))
   '(
     (is_openable box2@main)
@@ -37,7 +46,16 @@
     
     ) 
   nil)
+|#
 
+(place-object 'keybox@main 'box 'main&3&3 0
+    '((key key1@main))
+    '(
+      (is_openable keybox@main)
+      ;(can_take keybox@main)
+      )
+    nil)
+#|
 (place-object 'apple1@main 'apple 'main&1&5 0 
 	nil 
 	'(
@@ -76,6 +94,7 @@
 	 )
     nil 
 )
+|#
 
 
 (place-object 'AG 'robot 'main&3&3 0
@@ -93,14 +112,14 @@
    (is_hungry_to_degree AG 4.0)
    (is_thirsty_to_degree AG 2.0)
    (is_tired_to_degree AG 0.0)
-   ;(has AG nil)
-  
+   (not (has_winned AG))
+
   )
  nil
 )
 
 
-(setq *operators* '(takeItem turn+north turn+south turn+west turn+east answer_user_whq walk))
+(setq *operators* '(takeItem turn+north turn+south turn+west turn+east answer_user_whq walk openDoor))
 
 (setq *search-beam*
 	(list (cons 5 *operators*) (cons 4 *operators*) (cons 3 *operators*) ))
@@ -224,7 +243,7 @@
 
 ;Helper to see if two points are adjacent
 (defun is_adjacent? (?x ?y)
-  (format t "~S is_adjacent? ~S~%" ?x ?y)
+  ;;(format t "~S is_adjacent? ~S~%" ?x ?y)
   (not (null (find
     (+
       (abs
@@ -289,6 +308,13 @@
   (equal x y)
   )
 
+(defun checkKey? (?item)
+  (if (equal (subseq  (string ?item) 0 3) "key")
+    20
+    8
+    ))
+
+
 (setq takeItem
       (make-op :name 'takeItem :pars '(?pos ?itemPos ?dir ?item)
       :preconds '(
@@ -302,7 +328,7 @@
                    )
       :effects '( (has AG ?item) )
       :time-required 1
-      :value 4
+      :value '(checkKey? ?item)
       )
 )
 
@@ -322,6 +348,51 @@
   )
 )
 
+(setq openDoor
+      (make-op :name 'openDoor
+               :pars '(?pos ?key ?door)
+               :preconds '(
+                             (is_at AG ?pos)
+                             (is_accessible ?door)
+                             (is_at ?door ?pos)
+                             (has AG ?key)
+                             (key ?key)
+                             (not (equal? ?door AG))
+                        )
+               :effects '(
+                          (has_winned AG)
+                          )
+               :time-required 1
+               :value 10
+    )
+)
+
+(setq openDoor.actual 
+      (make-op.actual 
+        :name 'openDoor.actual
+        :pars '(?pos ?key ?door)
+        :startconds '(
+                        (is_at AG ?pos)
+                        (is_at ?door ?pos)
+                        (is_accessible ?door)
+                        (key ?key)
+                        (not (equal? ?door AG))
+                        (has AG ?key)
+                    )
+        :stopconds '(
+                        (has_winned AG)
+                    )
+        :deletes '(
+                    (has AG ?key)
+                )
+        :adds '(
+                (has_winned AG)
+                )
+    )
+)
+
+
+
 
 ; Modified from orginal file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -330,8 +401,8 @@
 ;; This is the `model' version.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun nextPos? (?curPos ?dir)
-  "return the next position after action"
-  (format t "pos: ~a dir: ~a ~%" ?curPos ?dir)
+  ;;"return the next position after action"
+  ;;(format t "pos: ~a dir: ~a ~%" ?curPos ?dir)
   (cond 
     ((equal ?dir 'EAST)
       (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
@@ -363,7 +434,7 @@
                (not (is_tired_to_degree AG ?f)) 
                )
     :time-required 1
-    :value 3
+    :value '(- 3 ?f)
     )
 )
 
