@@ -76,7 +76,7 @@
                ; according to AG's KB.
                (progn 
 
-                  (handleExtOps-Dungeon)
+                  ;(handleExtOps-Dungeon)
                   ; Above line commented out only for opp (i.e., normal) runs
                   (setq stopconds (mapcar #'simplify-value stopconds.actual))
                   (if (evaluable-func (car stopconds))

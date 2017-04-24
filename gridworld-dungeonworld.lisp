@@ -47,10 +47,11 @@
       (is_openable keybox@main)
       )
     nil)
-#|
+
 (place-object 'apple1@main 'apple 'main&1&5 0 
 	nil 
 	'(
+      (is_seeable apple1@main)
 	 )
     nil 
 )
@@ -58,6 +59,7 @@
 (place-object 'apple2@main 'apple 'main&3&5 0 
 	nil 
 	'(
+      (is_seeable apple2@main)
 	 )
     nil 
 )
@@ -65,6 +67,7 @@
 (place-object 'apple3@main 'apple 'main&5&1 0 
 	nil 
 	'(
+      (is_seeable apple3@main)
 	 )
     nil 
 )
@@ -72,6 +75,7 @@
 (place-object 'apple4@main 'apple 'main&5&4 0 
 	nil 
 	'(
+      (is_seeable apple4@main)
 	 )
     nil 
 )
@@ -79,19 +83,44 @@
 (place-object 'apple5@main 'apple 'main&5&4 0 
 	nil 
 	'(
+      (is_seeable apple5@main)
 	 )
     nil 
 )
-|#
 
+(place-object 'apple6@main 'apple 'main&3&1 0 
+	nil 
+	'(
+      (is_seeable apple6@main)
+	 )
+    nil 
+)
+
+(place-object 'apple7@main 'apple 'main&2&3 0 
+	nil 
+	'(
+      (is_seeable apple7@main)
+	 )
+    nil 
+)
+
+(place-object 'apple8@main 'apple 'main&1&3 0 
+	nil 
+	'(
+      (is_seeable apple8@main)
+	 )
+    nil 
+)
+
+;'( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 
 
 (place-object 'AG 'robot 'main&3&3 0
  nil
  '(
    (is_facing AG SOUTH)
-   ;(is_at AG main&3&3)
+   (is_at AG main&3&3)
    (eyes_open AG)
-   (can_see AG (apple3@main apple1@main))
+   (can_see AG apple2@main)
 
    (is_happy AG)
    (not (is_scared AG))
@@ -222,6 +251,16 @@
 	)
 )
 
+#|
+(setq see
+      (make-op :name 'see :pars '(?dir ?pos ?objects)
+      :preconds  '((eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects)); (hack_to_keep_false) ) 
+      :effects '( (can_see AG (saw? ?pos ?dir))  )
+      :time-required 1
+      :value 0
+      )
+)
+|#
 (setq see.actual 
 	(make-op.actual :name 'see.actual :pars '(?dir ?pos ?objects)
 	:startconds '( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 

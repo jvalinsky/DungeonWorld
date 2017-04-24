@@ -16,7 +16,34 @@
 			 children ; as a list of (action . state) pairs 
 			 event
 			 evaledStartConds
+             action
+             ;(action (eval action-name))
+             (pars (op.actual-pars op))
+             par-values
+             (par 'NIL)
+             (par-value 'NIL)
+             state
+             (unifiers (all-bindings-of-goals-to-fact-htable startconds *world-facts* (state-node-terms *curr-state-node*)))
+             inst-op
 			)
+            (setq inst-op (instantiate-op op (car unifiers)))
+            (setq action (eval inst-op))
+            ;(format t "what uni: ~a ~%" unifiers)
+            ;(format t "what op: ~a ~%" action)
+            (setq par-values (op.actual-pars action))
+            ;(format t "what op-pars: ~a ~%" pars)
+            ;(format t "what op-pars: ~a ~%" par-values)
+            
+        (while pars
+           ;(block continue
+           (setq par (pop pars))
+           (setq par-value (pop par-values))
+           ;(when (not par-value)
+            ; return-from continue)
+           (setq adds (subst par-value par adds))
+           (setq deletes (subst par-value par deletes));)
+           ;(setq stopconds.actual (subst par-value par stopconds)))
+        )
 
 (format t "~% handleSee ~a ~a" (op.actual-name (eval op-name)) conds-checked)		
 		
@@ -50,21 +77,14 @@
 					(inclusive-value (car children)))
 			
 			(setq *curr-state-node* (eval (cdar children)))
-#|
-       (while pars
-           (setq par (pop pars))
-           (setq par-value (pop par-values)) 
-           (setq adds.actual (subst par-value par adds.actual))
-           (setq deletes.actual (subst par-value par deletes.actual))
-           (setq stopconds.actual (subst par-value par stopconds.actual)) 
-        )
 
-|#
-			(setq adds (mapcar #'simplify-value adds))
+			
+;(format t "~a~%" adds)
+            (setq adds (mapcar #'simplify-value adds))
 
 			(setq deletes (mapcar #'simplify-value deletes))
-(format t "~a~%" adds)
-(format t "~a~%" deletes)
+;(format t "~a~%" adds)
+;(format t "~a~%" deletes)
 			(setq deletes (set-differencef deletes adds))
 			(remove_list_of_tuples_from_hashtable deletes *protected-facts* 'NIL)
 			(add_list_of_tuples_to_hashtable adds *protected-facts* 'NIL)
@@ -140,6 +160,7 @@
 			(setq is-abn 'NIL)
 			(setq is-terminated 'NIL)
 
+            ;(format t "adds: ~a ~%" adds)
             (if (equal name 'see.actual)
 				(progn 
 					(setq is-see 'T)
