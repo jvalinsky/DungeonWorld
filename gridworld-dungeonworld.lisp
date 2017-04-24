@@ -302,7 +302,7 @@
 
 
 (setq takeItem
-      (make-op :name 'takeItem :pars '(?pos ?itemPos ?dir ?item)
+      (make-op :name 'takeItem :pars '(?pos ?dir ?item ?itemPos)
       :preconds '(
         (is_item ?item)
         (is_at AG ?pos) 
@@ -319,7 +319,7 @@
 )
 
 (setq takeItem.actual 
-  (make-op.actual :name 'takeItem.actual :pars '(?pos ?itemPos ?dir ?item)
+  (make-op.actual :name 'takeItem.actual :pars '(?pos ?dir ?item ?itemPos)
   :startconds '(
         (is_item ?item)
         (is_at AG ?pos) 
@@ -335,7 +335,7 @@
 )
 
 (setq openContainer
-      (make-op :name 'openContainer :pars '(?pos ?objPos ?dir ?obj ?item)
+      (make-op :name 'openContainer :pars '(?pos ?dir ?obj ?objPos ?item)
       :preconds '(
         (is_openable ?obj)
         (is_closed ?obj)
@@ -352,7 +352,7 @@
 )
 
 (setq openContainer.actual 
-  (make-op.actual :name 'openContainer.actual :pars '(?pos ?objPos ?dir ?obj ?item)
+  (make-op.actual :name 'openContainer.actual :pars '(?pos ?dir ?obj ?objPos ?item)
   :startconds '( 
         (is_openable ?obj)
         (is_closed ?obj)
