@@ -17,7 +17,7 @@
 (def-object 'robot '(is_animate can_talk))
 (def-object 'apple '(is_inanimate is_edible is_item (has_cost 3.0)))
 (def-object 'bomb '(is_explodable is_item (has_damage 10.0)))
-(def-object 'box '(is_inanimate is_openable))
+(def-object 'box '(is_inanimate is_openable is_closed))
 (def-object 'door '(is_inanimate is_accessible))
 (def-object 'key '(is_inanimate is_item))
 
@@ -45,7 +45,6 @@
     '((key key1@main))
     '(
       (is_openable keybox@main)
-      ;(can_take keybox@main)
       )
     nil)
 #|
@@ -101,9 +100,6 @@
    (is_hungry_to_degree AG 4.0)
    (is_thirsty_to_degree AG 2.0)
    (is_tired_to_degree AG 0.0)
-
-   (is_closed box1@main)
-   (is_closed box2@main)
   
    (not (has_won AG))
 
