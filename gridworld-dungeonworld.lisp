@@ -180,6 +180,7 @@
                    (objs (mapcar 'cadr pred)))
               objs))))
    (mapcar #'(lambda (o) (push o *visited-objects*)) objects)
+   (setq *visited-objects* (remove-duplicates *visited-objects*))
    objects))
 
 
