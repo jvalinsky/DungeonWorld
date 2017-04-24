@@ -15,17 +15,14 @@
 
 
 (def-object 'robot '(is_animate can_talk))
-(def-object 'apple '(is_inanimate is_edible (has_cost 3.0)))
-(def-object 'bomb '(is_explodable (has_damage 10.0)))
+(def-object 'apple '(is_inanimate is_edible is_item (has_cost 3.0)))
+(def-object 'bomb '(is_explodable is_item (has_damage 10.0)))
 (def-object 'box '(is_inanimate is_openable))
 
 (place-object 'box1@main 'box 'main&0&0 0
   '((apple apple0@main))
   '(
     (is_openable box1@main)
-
-    (can_take box1@main)
-    
     ) 
   nil)
 
@@ -33,16 +30,13 @@
   '((bomb bomb0@main))
   '(
     (is_openable box2@main)
-    (can_take box2@main)
-    
     ) 
   nil)
 
 (place-object 'apple1@main 'apple 'main&1&5 0 
 	nil 
 	'(
-      (is_edible apple1@main) 
-    (can_take apple1@main)
+      (is_edible apple1@main)
 	 )
     nil 
 )
@@ -50,8 +44,7 @@
 (place-object 'apple2@main 'apple 'main&3&5 0 
 	nil 
 	'(
-      (is_edible apple2@main) 
-    (can_take apple1@main)
+      (is_edible apple2@main)
 	 )
     nil 
 )
@@ -297,7 +290,7 @@
         ;(is_direction ?dir ?itemPos ?pos)
         (is_at ?item ?itemPos) 
         (not (has AG ?item))
-        (can_take ?item)
+        (is_item ?item)
         (not (equal? AG ?item))
                    )
       :effects '( (has AG ?item) )
@@ -312,7 +305,7 @@
         (is_at AG ?pos) 
         (is_adjacent? ?pos ?itemPos)
         ;(is_direction ?dir ?itemPos ?pos)
-        (can_take ?item)
+        (is_item ?item)
         (is_at ?item ?itemPos) 
         (not (has AG ?item))
         (not (equal? ?item AG))
