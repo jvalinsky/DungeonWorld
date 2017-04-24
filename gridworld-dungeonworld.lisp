@@ -15,8 +15,8 @@
 
 
 (def-object 'robot '(is_animate can_talk))
-(def-object 'apple '(is_inanimate is_edible is_item (has_cost 3.0)))
-(def-object 'bomb '(is_explodable is_item (has_damage 10.0)))
+(def-object 'apple '(is_inanimate is_edible is_item is_reachable (has_cost 3.0)))
+(def-object 'bomb '(is_explodable is_item is_reachable (has_damage 10.0)))
 (def-object 'box '(is_inanimate is_openable is_closed))
 (def-object 'door '(is_inanimate is_accessible))
 (def-object 'key '(is_inanimate is_item))
@@ -41,7 +41,7 @@
   nil)
 |#
 
-(place-object 'keybox@main 'box 'main&3&3 0
+(place-object 'keybox@main 'box 'main&3&2 0
     '((key key1@main))
     '(
       (is_openable keybox@main)
@@ -56,7 +56,7 @@
     nil 
 )
 
-(place-object 'apple2@main 'apple 'main&3&5 0 
+(place-object 'apple2@main 'apple 'main&3&3 0 
 	nil 
 	'(
       (is_seeable apple2@main)
@@ -131,7 +131,6 @@
    (is_tired_to_degree AG 0.0)
   
    (not (has_won AG))
-   (not (is_reachable key1@main))
    (is_in key1@main keybox@main)
 
   )
@@ -261,7 +260,6 @@
       )
 )
 |#
-
 (setq see.actual 
 	(make-op.actual :name 'see.actual :pars '(?dir ?pos ?objects)
 	:startconds '( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 
@@ -329,9 +327,6 @@
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   )
-
-
-
 
 (defun checkKey? (?item)
   (if (equal (subseq  (string ?item) 0 3) "key")
@@ -449,7 +444,7 @@
         :adds '(
                 (has_won AG)
                 (terminate?)
-              )
+                )
     )
 )
 
