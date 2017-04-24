@@ -336,7 +336,7 @@
   )
 
 (defun checkKey? (?item)
-  (if (equal (subseq  (string ?item) 0 3) "key")
+  (if (equal (subseq  (symbol-name ?item) 0 3) "KEY")
     20 ;; if the item is a key, give it 20 as value
     8
     ))
