@@ -261,6 +261,7 @@
       )
 )
 |#
+
 (setq see.actual 
 	(make-op.actual :name 'see.actual :pars '(?dir ?pos ?objects)
 	:startconds '( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 
@@ -332,6 +333,9 @@
                 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
                 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   ))
+
+
+
 
 (defun checkKey? (?item)
   (if (equal (subseq  (string ?item) 0 3) "key")
@@ -449,7 +453,7 @@
         :adds '(
                 (has_won AG)
                 (terminate?)
-                )
+              )
     )
 )
 
