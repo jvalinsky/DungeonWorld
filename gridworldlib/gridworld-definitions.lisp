@@ -166,14 +166,14 @@
             	
 		; Create a roadmap knowledge list for the Motivated Explorer (AG):
 		(add_tuple_to_hashtable(cons 'road (list name)) *roadmap-knowledge* 'NIL)
-		(add_tuple_to_hashtable (cons 'navigable (list name)) *roadmap-knowledge* 'NIL)
+		;(add_tuple_to_hashtable (cons 'navigable (list name)) *roadmap-knowledge* 'NIL)
 		
 		(setq pt1 (pop pt-list))
-		(add_tuple_to_hashtable (list 'is_on pt1 name) *roadmap-knowledge* 'NIL)		
+		;(add_tuple_to_hashtable (list 'is_on pt1 name) *roadmap-knowledge* 'NIL)		
 		
 		(while (> (length pt-list) 0)
 			(setq pt2 (pop pt-list))
-			(add_tuple_to_hashtable (list 'is_on pt2 name) *roadmap-knowledge* 'NIL)	
+			;(add_tuple_to_hashtable (list 'is_on pt2 name) *roadmap-knowledge* 'NIL)	
 			(setq currleng (pop dist-list))
 			(push (list name pt2 currleng) (get pt1 'next))
 			(push (list name pt1 currleng) (get pt2 'next)) 

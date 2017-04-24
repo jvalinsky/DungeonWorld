@@ -17,7 +17,7 @@
 (def-object 'robot '(is_animate can_talk))
 (def-object 'apple '(is_inanimate is_edible is_item (has_cost 3.0)))
 (def-object 'bomb '(is_explodable is_item (has_damage 10.0)))
-(def-object 'box '(is_inanimate is_openable is_closed))
+(def-object 'box '(is_inanimate is_openable))
 (def-object 'door '(is_inanimate is_accessible))
 (def-object 'key '(is_inanimate is_item))
 
@@ -41,7 +41,7 @@
   nil)
 |#
 
-(place-object 'keybox@main 'box 'main&3&3 0
+(place-object 'keybox@main 'box 'main&3&2 0
     '((key key1@main))
     '(
       (is_openable keybox@main)
@@ -56,7 +56,7 @@
     nil 
 )
 
-(place-object 'apple2@main 'apple 'main&3&5 0 
+(place-object 'apple2@main 'apple 'main&3&3 0 
 	nil 
 	'(
       (is_seeable apple2@main)
@@ -131,8 +131,8 @@
    (is_tired_to_degree AG 0.0)
   
    (not (has_won AG))
-   (not (is_reachable key1@main))
    (is_in key1@main keybox@main)
+   (is_hidden key1@main)
 
   )
  nil
@@ -274,8 +274,7 @@
 
 ;Helper to see if two points are adjacent
 (defun is_adjacent? (?x ?y)
-  ;;(format t "~S is_adjacent? ~S~%" ?x ?y)
-  (not (null (find
+  (equal 1
     (+
       (abs
         (-
@@ -285,55 +284,52 @@
         (-
           (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
           (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
-    '(0 1))))
-)
+))
 
 ;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
 (defun is_direction? (?dir ?x ?y)
-  (if (equal ?x ?y)
-    t
-    (cond 
-      ((equal ?dir 'EAST)
-        (and
-          (equal 0
-            (-
-                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-          (< 0
-            (-
-                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-      ((equal ?dir 'WEST)
-        (and
-          (equal 0
-            (-
-                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-          (> 0
-            (-
-                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-      ((equal ?dir 'NORTH)
-        (and
-          (< 0
-            (-
-                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-          (equal 0
-            (-
-                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-      ((equal ?dir 'SOUTH)
-        (and
-          (> 0
-            (-
-                (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-                (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-          (equal 0
-            (-
-                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-                (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
-  ))
+  (cond 
+    ((equal ?dir 'EAST)
+      (and
+        (equal 0
+          (-
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+        (< 0
+          (-
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+    ((equal ?dir 'WEST)
+      (and
+        (equal 0
+          (-
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+        (> 0
+          (-
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+    ((equal ?dir 'NORTH)
+      (and
+        (< 0
+          (-
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+        (equal 0
+          (-
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+    ((equal ?dir 'SOUTH)
+      (and
+        (> 0
+          (-
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+        (equal 0
+          (-
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
+  )
 
 (defun checkKey? (?item)
   (if (equal (subseq  (string ?item) 0 3) "key")
@@ -351,7 +347,7 @@
         (is_at ?item ?itemPos)
         ;(is_direction ?dir ?itemPos ?pos)
         (not (has AG ?item))
-        (is_reachable ?item)
+        (not (is_hidden ?item))
                    )
       :effects '( (has AG ?item) )
       :time-required 1
@@ -368,7 +364,7 @@
         (is_at ?item ?itemPos) 
         ;(is_direction ?dir ?itemPos ?pos)
         (not (has AG ?item))
-        (is_reachable ?item)
+        (not (is_hidden ?item))
                    )
   :stopconds '( (has AG ?item) )
   :adds '( (has AG ?item) )
@@ -379,14 +375,14 @@
       (make-op :name 'openContainer :pars '(?pos ?dir ?obj ?objPos ?item)
       :preconds '(
         (is_openable ?obj)
-        (is_closed ?obj)
+        (not (is_open ?obj))
         (is_at AG ?pos)
         (is_adjacent? ?pos ?objPos)
         (is_at ?obj ?objPos)
         ;(is_direction ?dir ?objPos ?pos)
         (is_in ?item ?obj)
       )
-      :effects '( (is_open ?obj) (not (is_closed ?obj)) (is_reachable ?item) )
+      :effects '( (is_open ?obj) (not (is_hidden ?item)) )
       :time-required 1
       :value 4
       )
@@ -396,7 +392,7 @@
   (make-op.actual :name 'openContainer.actual :pars '(?pos ?dir ?obj ?objPos ?item)
   :startconds '( 
         (is_openable ?obj)
-        (is_closed ?obj)
+        (not (is_open ?obj))
         (is_at AG ?pos)
         (is_adjacent? ?pos ?objPos)
         (is_at ?obj ?objPos)
@@ -404,8 +400,8 @@
         (is_in ?item ?obj)
                    )
   :stopconds '( (is_open ?obj) )
-  :deletes '( (is_closed ?obj) (not(is_reachable ?item)) )
-  :adds '( (is_open ?obj) (is_reachable ?item) )
+  :deletes '( (is_hidden ?item) )
+  :adds '( (is_open ?obj) (not (is_hidden ?item)) )
   )
 )
 
