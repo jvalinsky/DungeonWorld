@@ -45,13 +45,13 @@
            ;(setq stopconds.actual (subst par-value par stopconds)))
         )
 
-(format t "~% handleSee ~a ~a" (op.actual-name (eval op-name)) conds-checked)		
+;(format t "~% handleSee ~a ~a" (op.actual-name (eval op-name)) conds-checked)		
 		
     (if	(eq 'T conds-checked)
 			(setq bindings '(T))
 			(progn ;prog2
 				(setq evaledStartConds (mapcar #'(lambda (x) (evalFunctionPredicateExt x)) startconds))
-(format t "~%evaledStartConds = ~a~%" evaledStartConds)
+;(format t "~%evaledStartConds = ~a~%" evaledStartConds)
 				(when (eq 'NIL
 				 		(or 
 				 			(eq 'T (eval (cons 'memb (list (quote 'UNKNOWN) (list 'quote evaledStartConds)))))
@@ -65,7 +65,7 @@
 		
         ; Execute the operator only if its startconds are true of the world.
 		(when (equal bindings '(T))
-(format t " on~%")
+;(format t " on~%")
 			(setq instances 
 					(mapcar #'(lambda (u) (instantiate-op.actual op u)) bindings))
 			(setq state-nodes (mapcar #'(lambda (i) 
@@ -110,6 +110,8 @@
 			(push (list event *AG-clock*) *AG-history*)
 			(setq *states* (cons new-state (cdr *states*)))
 		)
+
+        (verbalize (car adds))
 	)
 ); end of handleSee
 
@@ -150,7 +152,7 @@
 		(dotimes (i queue-length)
 			(setq op (caar (pop *event-queue*)))
 			(setq name (op.actual-name (eval op)))
-(format t "~%HEOEventName ~a ~a" name (length *event-queue*))
+;(format t "~%HEOEventName ~a ~a" name (length *event-queue*))
 			(setq adds (op.actual-adds (eval op)))
 			(setq deletes (op.actual-deletes (eval op)))
 			(setq stadds (op.actual-starredAdds (eval op)))
@@ -192,7 +194,7 @@
 					; Insert into history as completed. (maybe to-do?)
 					; Update the world KB and the agent's KB with starred 
 					; adds and starred deletes.
-(format t "~% HEOExt ~a Is Terminated." name)			
+;(format t "~% HEOExt ~a Is Terminated." name)			
 					(setq stadds (mapcar #'simplify-value stadds))
 					(setq stdeletes (mapcar #'simplify-value stdeletes))
 					(setq stdeletes (set-differencef stdeletes stadds))

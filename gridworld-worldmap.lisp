@@ -12,6 +12,9 @@
 (defun depth (?room)
      (caddr (cadr (gethash (list 'depth ?room nil) *room-facts*))))
 
+(defun bounds (?room)
+     (caddr (cadr (gethash (list 'bounds ?room nil nil nil nil) *room-facts*))))
+
 (defun room-pts-rect (?room ?x1 ?x2 ?y1 ?y2)
   (loop for x from ?x1 to ?x2
                      append
@@ -57,4 +60,5 @@
          (edges (room-edges-rect ?room points)))
     (add_tuple_to_hashtable (list 'width ?room w) *room-facts* nil)
     (add_tuple_to_hashtable (list 'depth ?room d) *room-facts* nil)
+    (add_tuple_to_hashtable (list 'bounds ?room (list ?x1 ?x2 ?y1 ?y2) ) *room-facts* nil)
     (list points edges)))

@@ -104,7 +104,7 @@
     nil 
 )
 
-(place-object 'apple8@main 'apple 'main&1&3 0 
+(place-object 'apple8@main 'apple 'main&3&0 0 
 	nil 
 	'(
       (is_seeable apple8@main)
@@ -120,7 +120,7 @@
    (is_facing AG SOUTH)
    (is_at AG main&3&3)
    (eyes_open AG)
-   (can_see AG apple2@main)
+   (can_see AG see@placeholder)
 
    (is_happy AG)
    (not (is_scared AG))
@@ -150,32 +150,34 @@
 
 (defun saw? (pos dir)
  (let* ((sym-lst (split-regexp "&" (symbol-name pos)))
-       (room (intern (car sym-lst)))
+       (?room (intern (car sym-lst)))
        (x (parse-integer (cadr sym-lst)))
        (y (parse-integer (caddr sym-lst)))
-       (dx (width room))
-       (dy (depth room))
+       (b (bounds ?room))
+       (ex (cadr b))
+       (ey (cadddr b))
        (begin (cond 
-                ((equal dir 'NORTH) (+ x 1))
-                ((equal dir 'SOUTH) 0)
+                ((equal dir 'NORTH) 0)
+                ((equal dir 'SOUTH) y)
                 ((equal dir 'WEST)  0)
-                ((equal dir 'EAST)  (+ y 1))))
+                ((equal dir 'EAST)  x)))
        (end (cond 
-                ((equal dir 'NORTH) dx)
-                ((equal dir 'SOUTH) (- x 1))
-                ((equal dir 'WEST) (- y 1))
-                ((equal dir 'EAST) dy))))
-   (loop for n from begin to end
+                ((equal dir 'NORTH) y)
+                ((equal dir 'SOUTH) ey)
+                ((equal dir 'WEST) x)
+                ((equal dir 'EAST) ex))))
+   ;(format t "bounds: ~a~%" b)
+   (remove 'AG (loop for n from begin to end
          append
             (let* ((xp (if (or (equal dir 'NORTH) (equal dir 'SOUTH)) n x))
                    (yp (if (or (equal dir 'EAST) (equal dir 'WEST)) n y))
-                   (plst (list room xp yp))
+                   (plst (list ?room xp yp))
                    (point (intern (format nil "~{~a~^&~}" plst)))
                    (hval  (gethash (list 'is_at nil point) *world-facts*))
                    (nobjs (car hval))
                    (pred (cdr hval))
                    (objs (mapcar 'cadr pred)))
-              objs))))
+              objs)))))
 
 
 
