@@ -366,6 +366,10 @@
   )
 )
 
+(defun terminate? ()
+  (format t "~%~%The agent escaped!~%~%")
+  (exit))
+
 (setq openDoor
       (make-op :name 'openDoor
                :pars '(?pos ?key ?door)
@@ -403,6 +407,7 @@
                 )
         :adds '(
                 (has_won AG)
+                (terminate?)
                 )
     )
 )
