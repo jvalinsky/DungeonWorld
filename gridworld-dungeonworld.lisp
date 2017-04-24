@@ -15,9 +15,9 @@
 
 
 (def-object 'robot '(is_animate can_talk))
-(def-object 'apple '(is_inanimate is_edible is_item is_reachable (has_cost 3.0)))
-(def-object 'bomb '(is_explodable is_item is_reachable (has_damage 10.0)))
-(def-object 'box '(is_inanimate is_openable is_closed))
+(def-object 'apple '(is_inanimate is_edible is_item (has_cost 3.0)))
+(def-object 'bomb '(is_explodable is_item (has_damage 10.0)))
+(def-object 'box '(is_inanimate is_openable))
 (def-object 'door '(is_inanimate is_accessible))
 (def-object 'key '(is_inanimate is_item))
 
@@ -132,6 +132,7 @@
   
    (not (has_won AG))
    (is_in key1@main keybox@main)
+   (is_hidden key1@main)
 
   )
  nil
@@ -344,7 +345,7 @@
         (is_at ?item ?itemPos)
         ;(is_direction ?dir ?itemPos ?pos)
         (not (has AG ?item))
-        (is_reachable ?item)
+        (not (is_hidden ?item))
                    )
       :effects '( (has AG ?item) )
       :time-required 1
@@ -361,7 +362,7 @@
         (is_at ?item ?itemPos) 
         ;(is_direction ?dir ?itemPos ?pos)
         (not (has AG ?item))
-        (is_reachable ?item)
+        (not (is_hidden ?item))
                    )
   :stopconds '( (has AG ?item) )
   :adds '( (has AG ?item) )
@@ -372,14 +373,14 @@
       (make-op :name 'openContainer :pars '(?pos ?dir ?obj ?objPos ?item)
       :preconds '(
         (is_openable ?obj)
-        (is_closed ?obj)
+        (not (is_open ?obj))
         (is_at AG ?pos)
         (is_adjacent? ?pos ?objPos)
         (is_at ?obj ?objPos)
         ;(is_direction ?dir ?objPos ?pos)
         (is_in ?item ?obj)
       )
-      :effects '( (is_open ?obj) (not (is_closed ?obj)) (is_reachable ?item) )
+      :effects '( (is_open ?obj) (not (is_hidden ?item)) )
       :time-required 1
       :value 4
       )
@@ -389,7 +390,7 @@
   (make-op.actual :name 'openContainer.actual :pars '(?pos ?dir ?obj ?objPos ?item)
   :startconds '( 
         (is_openable ?obj)
-        (is_closed ?obj)
+        (not (is_open ?obj))
         (is_at AG ?pos)
         (is_adjacent? ?pos ?objPos)
         (is_at ?obj ?objPos)
@@ -397,8 +398,8 @@
         (is_in ?item ?obj)
                    )
   :stopconds '( (is_open ?obj) )
-  :deletes '( (is_closed ?obj) (not(is_reachable ?item)) )
-  :adds '( (is_open ?obj) (is_reachable ?item) )
+  :deletes '( (is_hidden ?item) )
+  :adds '( (is_open ?obj) (not (is_hidden ?item)) )
   )
 )
 
