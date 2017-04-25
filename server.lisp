@@ -6,7 +6,7 @@
 (defpackage ltest
   (:use :cl
         :websocket-driver)
-  (:import-from cl-user go_web! listen!))
+  (:import-from cl-user go_web! listen! get-points split-regexp))
 
 (in-package :ltest)
 
@@ -18,14 +18,24 @@
 
 (defvar *echo*
   (lambda (env)
-       (let ((ws (make-server env)))
+       (let* ((ws (make-server env)) (pts (get-points)) (npts (car pts)) (points (mapcar #'cadr (cdr pts))))
+         (setq points (mapcar #'(lambda (p) (split-regexp "&" (symbol-name p)) ) points))
+         (setq points (mapcar #'(lambda (p) (format nil "[\"~a\", ~a, ~a]" (car p) (cadr p) (caddr p)) ) points) )
          (on :connect ws
              (lambda (x)
-               (send ws "hi")))
+               (send ws "hi")
+
+               ))
          (on :message ws
              (lambda (message)
-               (if (equal message "go") (send ws (go_web!))
-               (send ws message))))
+               (cond
+                 ((equal message "num-points")
+                  (send ws (format nil "number of points: ~a" npts)))
+
+                ((equal message "points")
+                 (send ws (format nil "\{ \"points\": [ ~{ ~a ~^,~} ] \}" points)))
+                ((equal message "go") (send ws (go_web!)))
+                (t (send ws message)))))
          (lambda (responder)
            (declare (ignore responder))
            (start-connection ws)))))

@@ -15,6 +15,9 @@
 (defun bounds (?room)
      (caddr (cadr (gethash (list 'bounds ?room nil nil nil nil) *room-facts*))))
 
+(defun get-points ()
+  (gethash (list 'point nil) *roadmap-knowledge*))
+
 (defun room-pts-rect (?room ?x1 ?x2 ?y1 ?y2)
   (loop for x from ?x1 to ?x2
                      append

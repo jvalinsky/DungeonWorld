@@ -22,9 +22,27 @@ var text = new paper.PointText({
 
 var ws = new WebSocket("ws://localhost:8080/echo")
 
-ws.addEventListener('message', function (event) {
+ws.addEventListener('open', function (event) {
     text.content = event.data
     console.log('Message from server', event.data);
+})
+
+ws.addEventListener('message', function (event) {
+    try {
+    data = JSON.parse(event.data)
+    points = data["points"]
+    console.log(points)
+    var temp
+    points.forEach(function(p) {
+        temp = new paper.Path.Circle(p[1]*50 + 500, p[2]*50 + 100, 5)
+        temp.fillColor = 'black'
+    })
+
+    } catch (e) {
+        text.content = event.data
+            console.log('Message from server', event.data)
+    }
+
 })
 
 button = document.getElementById("button")
@@ -55,8 +73,8 @@ body {
 
 /* Scale canvas with resize attribute to full size */
 canvas[resize] {
-    width: 50%;
-    height: 50%;
+    width: 100%;
+    height: 75%;
 }
 </style>
 </body>
