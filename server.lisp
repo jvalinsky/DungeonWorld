@@ -1,12 +1,12 @@
 (in-package cl-user)
 (ql:quickload '(:websocket-driver :clack) :silent t)
-(load "init.lisp")
+(load "init_web.lisp")
 
 
 (defpackage ltest
   (:use :cl
         :websocket-driver)
-  (:import-from cl-user go! listen!))
+  (:import-from cl-user go_web! listen!))
 
 (in-package :ltest)
 
@@ -24,7 +24,7 @@
                (send ws "hi")))
          (on :message ws
              (lambda (message)
-               (if (equal message "go") (go!)
+               (if (equal message "go") (send ws (go_web!))
                (send ws message))))
          (lambda (responder)
            (declare (ignore responder))
