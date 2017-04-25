@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Load the Paper.js library -->
+<script type="text/javascript" src="javascript/paper-full.min.js"></script>
+<!-- Define inlined PaperScript associate it with myCanvas -->
+<script type="text/javascript">
+window.onload = function() {
+
+var canvas = document.getElementById('myCanvas')
+paper.setup(canvas)
+
+var text = new paper.PointText({
+    point: [50,50],
+    content: 'Waiting for server...',
+    fillColor: 'black',
+    fontFamily: 'Courier New',
+    fontWeight: 'bold',
+    fontSize: 30
+})
+
+
+var ws = new WebSocket("ws://localhost:8080/echo")
+
+ws.addEventListener('message', function (event) {
+    text.content = event.data
+    console.log('Message from server', event.data);
+})
+
+button = document.getElementById("button")
+
+button.onclick = function (event) {
+    textVal = document.getElementById("val").value
+    console.log("text: " + textVal)
+    ws.send(textVal)
+}
+
+paper.view.draw()
+}
+
+
+</script>
+</head>
+<body>
+	<canvas id="myCanvas" resize="true"></canvas>
+        Enter text: <input type="text" name="fname" id="val">
+        <button id="button" type="button"> Submit </button>
+<style type="text/css">
+html,
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100%;
+}
+
+/* Scale canvas with resize attribute to full size */
+canvas[resize] {
+    width: 50%;
+    height: 50%;
+}
+</style>
+</body>
+</html>
