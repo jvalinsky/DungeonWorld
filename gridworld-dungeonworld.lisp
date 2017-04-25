@@ -25,7 +25,7 @@
 (place-object 'door1@main 'door 'main&3&2 0 ;; like a door to go through a portal in the middle of a room
     nil
     '(
-        (is_accessible door1@main))
+      )
     nil)
 #|
 (place-object 'box1@main 'box 'main&0&0 0
@@ -41,10 +41,9 @@
   nil)
 |#
 
-(place-object 'keybox@main 'box 'main&3&2 0
+(place-object 'chest@main 'box 'main&3&2 0
     '((key key1@main))
     '(
-      (is_openable keybox@main)
       )
     nil)
 
@@ -55,7 +54,7 @@
 	 )
     nil 
 )
-#|
+
 (place-object 'apple2@main 'apple 'main&3&3 0 
 	nil 
 	'(
@@ -63,7 +62,7 @@
 	 )
     nil 
 )
-|#
+
 (place-object 'apple3@main 'apple 'main&5&1 0 
 	nil 
 	'(
@@ -129,7 +128,7 @@
    (is_tired_to_degree AG 0.0)
   
    (not (has_won AG))
-   (is_in key1@main keybox@main)
+   (is_in key1@main chest@main)
    (is_hidden key1@main)
 
   )
@@ -283,7 +282,7 @@
 ;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
 (defun is_direction? (?dir ?x ?y)
   (cond
-    ((equal ?x ?y) T)
+    ;((equal ?x ?y) NIL)
     ((equal ?dir 'NORTH)
       (and
         (equal 0
