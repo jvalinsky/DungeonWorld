@@ -2,6 +2,7 @@
 <html>
 <head>
 <!-- Load the Paper.js library -->
+<meta charset="UTF-8" />
 <script type="text/javascript" src="javascript/paper-full.min.js"></script>
 <!-- Define inlined PaperScript associate it with myCanvas -->
 <script type="text/javascript">
@@ -19,49 +20,93 @@ var text = new paper.PointText({
     fontSize: 15
 })
 
-
-var ws = new WebSocket("ws://localhost:8080/echo")
-
-ws.addEventListener('open', function (event) {
-    text.content = event.data
-    console.log('Message from server', event.data);
-})
-
-ws.addEventListener('message', function (event) {
-    try {
-    data = JSON.parse(event.data)
-    points = data["points"]
-    console.log(points)
+function renderPoints (points) {
+    console.dir(points)
     var temp
-    points.forEach(function(p) {
-        temp = new paper.Path.Circle(p[1]*50 + 500, p[2]*50 + 100, 5)
+    points['MAIN'].forEach(function(p) {
+        temp = new paper.Path.Circle(p['x']*50 + 800, p['y']*50 + 100, 5)
         temp.fillColor = 'black'
     })
+} 
 
-    } catch (e) {
-        text.content = event.data
-            console.log('Message from server', event.data)
+function renderLocations (data) {
+    console.dir(data)
+    data.forEach(function(object) {
+        var name = object['name']
+        var type = object['type']
+        var x = object['x']
+        var y = object['y']
+        var temp = new paper.Path.Circle(x*50 + 800, y*50 + 100, 5)
+        if(type == "AG") {
+            temp.fillColor = 'blue'
+        } else if(type == "apple") {
+            temp.fillColor = 'red'
+        } else {
+            temp.fillColor = 'green'
+        }
+        console.log("updated location for " + 
+            name + " type: " + type + " new location: (" + x + "," + y + ")")
+    })
+} 
+
+function renderEval (output) {
+    console.log(output)
+    text.content = output
+}
+
+function updateLocations() {
+    var xhr = new XMLHttpRequest()
+    var contentType= "text/json; charset=UTF-8"
+    xhr.open("GET", "/object-locations", true)
+    xhr.setRequestHeader("Content-type", contentType)
+    xhr.onload = function () {
+    var data = JSON.parse(this.responseText)
+        renderLocations(data)
     }
+    xhr.send()
+}
 
-})
+
+
+var xhr = new XMLHttpRequest()
+var contentType= "text/json; charset=UTF-8"
+xhr.open("GET", "/gridworld-points", true)
+xhr.setRequestHeader("Content-type", contentType)
+xhr.onload = function () {
+    var data = JSON.parse(this.responseText)
+    renderPoints(data)
+}
+xhr.send()
+
+
+
 
 button = document.getElementById("button")
 
 button.onclick = function (event) {
     textVal = document.getElementById("val").value
     console.log("text: " + textVal)
-    ws.send(textVal)
+    var xhr = new XMLHttpRequest()
+    var contentType= "application/x-www-form-urlencoded; charset=UTF-8"
+    var params = "command=" + textVal
+
+    xhr.open("POST", "/eval", true)
+    xhr.setRequestHeader("Content-type", contentType)
+    xhr.onload = function () {
+        renderEval(this.responseText)
+    }
+
+    xhr.send(params)
 }
 
-paper.view.draw()
+    paper.view.draw()
 }
-
 
 </script>
 </head>
 <body>
 	<canvas id="myCanvas" resize="true"></canvas>
-        Enter text: <input type="text" name="fname" id="val">
+        Enter text: <input type="text" name="command" id="val">
         <button id="button" type="button"> Submit </button>
 <style type="text/css">
 html,

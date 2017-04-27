@@ -24,6 +24,45 @@
                      (loop for y from ?y1 to ?y2
                            collect (intern (format nil "~{~a~^&~}" (list ?room x y))))))
 
+(defun get-obj-type (object)
+   (car (car 
+          (remove-if #'(lambda (x) (or (null x) (not (equal object (cadr x))))) 
+                     (mapcar #'(lambda (type) (cadr (gethash (list type nil) *world-facts*))) *obj-types*)))))
+
+(defun get-object-location (object)
+  (caddr (cadr (gethash (list 'is_at object nil) *world-facts*))))
+
+(defun point-to-htable (point)
+  (let* ((plist (split-regexp "&" (symbol-name point)))
+        (room (car plist))
+        (x (parse-integer (cadr plist)))
+        (y (parse-integer (caddr plist)))
+        (data (make-hash-table :test 'equal))
+        (pobj (make-hash-table :test 'equal)))
+    (setf (gethash "room" pobj) room)
+    (setf (gethash "x" pobj) x)
+    (setf (gethash "y" pobj) y)
+    pobj))
+
+(defun points-to-htable-helper (point htable)
+  (let* ((plist (split-regexp "&" (symbol-name point)))
+        (room (car plist))
+        (x (parse-integer (cadr plist)))
+        (y (parse-integer (caddr plist)))
+        (pobj htable)
+        (data (make-hash-table :test 'equal)))
+    (setf (gethash "x" data) x)
+    (setf (gethash "y" data) y)
+    (setf (gethash room pobj) (append (gethash room pobj) (list data)))))
+
+(defun points-to-htable (points)
+  (let ((psobj (make-hash-table :test 'equal)))
+    (mapcar #'(lambda (p) (points-to-htable-helper p psobj)) points)
+    psobj))
+
+(defun world-pts ()
+  (mapcar #'cadr (cdr (get-points))))
+
 ; for loop in for loop that checks if there should be a path between points
 ; then makes path
 (defun room-edges-rect-helper (?room ?points ?lst)

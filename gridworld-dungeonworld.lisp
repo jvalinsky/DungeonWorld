@@ -22,6 +22,9 @@
 (def-object 'key '(is_inanimate is_item))
 
 
+(defparameter *obj-types* (remove-if #'(lambda (x) (member x '(knows tells))) (mapcar 'car (remove-duplicates (mapcar 'car *general-knowledge*)))))
+
+
 (place-object 'door1@main 'door 'main&3&2 0 ;; like a door to go through a portal in the middle of a room
     nil
     '(
