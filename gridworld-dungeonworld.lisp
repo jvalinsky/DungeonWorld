@@ -119,12 +119,7 @@
    (eyes_open AG)
    (can_see AG see@placeholder)
 
-   (is_happy AG)
-   (not (is_scared AG))
-   (not (is_surprised AG))
-
-   (is_hungry_to_degree AG 4.0)
-   (is_thirsty_to_degree AG 2.0)
+   (is_hungry_to_degree AG 2.0)
    (is_tired_to_degree AG 0.0)
   
    (not (has_won AG))
@@ -184,74 +179,90 @@
 
 
 (setq turn+north
-      (make-op :name 'turn+north :pars '(?dir)
-      :preconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) ) 
-      :effects '( (is_facing AG NORTH) )
+      (make-op :name 'turn+north :pars '(?dir ?f)
+      :preconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) (is_tired_to_degree AG ?f) ) 
+      :effects '( (is_facing AG NORTH)
+                  (is_tired_to_degree AG (+ ?f 0.1))
+                  (not (is_tired_to_degree AG ?f)) )
       :time-required 1
-      :value 1
+      :value '(- 2 ?f)
       )
 )
 
 (setq turn+north.actual 
-	(make-op.actual :name 'turn+north.actual :pars '(?dir)
-	:startconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) )
+	(make-op.actual :name 'turn+north.actual :pars '(?dir ?f)
+	:startconds '( (not (is_facing AG NORTH)) (is_facing AG ?dir) (is_tired_to_degree AG ?f) )
     :stopconds '( (is_facing AG NORTH) )
-	:deletes '( (is_facing AG ?dir) (not (is_facing AG NORTH))  )
-    :adds '( (is_facing AG NORTH) (not (is_facing AG ?dir))  )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG NORTH)) 
+              (is_tired_to_degree AG ?f) )
+    :adds '( (is_facing AG NORTH) (not (is_facing AG ?dir))
+           (is_tired_to_degree AG (+ ?f 0.1)) (not (is_tired_to_degree AG ?f)) )
 	)
 )
 
 (setq turn+south
-      (make-op :name 'turn+south :pars '(?dir)
-      :preconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir) )
-      :effects '( (is_facing AG SOUTH) )
+      (make-op :name 'turn+south :pars '(?dir ?f)
+      :preconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir (is_tired_to_degree AG ?f)) )
+      :effects '( (is_facing AG SOUTH)
+                    (is_tired_to_degree AG (+ ?f 0.1))
+                    (not (is_tired_to_degree AG ?f)) )
       :time-required 1
-      :value 1
+      :value '(- 2 ?f)
       )
 )
 
 (setq turn+south.actual 
-	(make-op.actual :name 'turn+south.actual :pars '(?dir)
-	:startconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir) )
+	(make-op.actual :name 'turn+south.actual :pars '(?dir ?f)
+	:startconds '( (not (is_facing AG SOUTH)) (is_facing AG ?dir) (is_tired_to_degree AG ?f) )
     :stopconds '( (is_facing AG SOUTH) )
-	:deletes '( (is_facing AG ?dir) (not (is_facing AG SOUTH))  )
-    :adds '( (is_facing AG SOUTH) (not (is_facing AG ?dir))  )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG SOUTH)) 
+              (is_tired_to_degree AG ?f) )
+    :adds '( (is_facing AG SOUTH) (not (is_facing AG ?dir))
+           (is_tired_to_degree AG (+ ?f 0.1)) (not (is_tired_to_degree AG ?f)) )
 	)
 )
 
 (setq turn+west
-      (make-op :name 'turn+west :pars '(?dir)
-      :preconds '( (not (is_facing AG WEST)) (is_facing AG ?dir) )
-      :effects '( (is_facing AG WEST)  )
+      (make-op :name 'turn+west :pars '(?dir ?f)
+      :preconds '( (not (is_facing AG WEST)) (is_facing AG ?dir) (is_tired_to_degree AG ?f) )
+      :effects '( (is_facing AG WEST)
+                  (is_tired_to_degree AG (+ ?f 0.1))
+                  (not (is_tired_to_degree AG ?f)) )
       :time-required 1
-      :value 1
+      :value '(- 2 ?f)
       )
 )
 
 (setq turn+west.actual 
-	(make-op.actual :name 'turn+west.actual :pars '(?dir)
-	:startconds '( (not (is_facing AG WEST)) (is_facing AG ?dir)  )
+	(make-op.actual :name 'turn+west.actual :pars '(?dir ?f)
+	:startconds '( (not (is_facing AG WEST)) (is_facing AG ?dir)  (is_tired_to_degree AG ?f) )
     :stopconds '( (is_facing AG WEST) )
-	:deletes '( (is_facing AG ?dir) (not (is_facing AG WEST)) )
-    :adds '( (is_facing AG WEST) (not (is_facing AG ?dir)) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG WEST))
+              (is_tired_to_degree AG ?f) )
+    :adds '( (is_facing AG WEST) (not (is_facing AG ?dir))
+             (is_tired_to_degree AG (+ ?f 0.1)) (not (is_tired_to_degree AG ?f)) )
 	)
 )
 
 (setq turn+east
-      (make-op :name 'turn+east :pars '(?dir)
-      :preconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) )
-      :effects '( (is_facing AG EAST) )
+      (make-op :name 'turn+east :pars '(?dir ?f)
+      :preconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) (is_tired_to_degree AG ?f) )
+      :effects '( (is_facing AG EAST)
+                  (is_tired_to_degree AG (+ ?f 0.1))
+                    (not (is_tired_to_degree AG ?f)) )
       :time-required 1
-      :value 1
+      :value '(- 2 ?f)
       )
 )
 
 (setq turn+east.actual 
-	(make-op.actual :name 'turn+east.actual :pars '(?dir)
-	:startconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) )
+	(make-op.actual :name 'turn+east.actual :pars '(?dir ?f)
+	:startconds '( (not (is_facing AG EAST)) (is_facing AG ?dir) (is_tired_to_degree AG ?f) )
     :stopconds '( (is_facing AG EAST) )
-	:deletes '( (is_facing AG ?dir) (not (is_facing AG EAST))  )
-    :adds '( (is_facing AG EAST) (not (is_facing AG ?dir)) )
+	:deletes '( (is_facing AG ?dir) (not (is_facing AG EAST)) 
+              (is_tired_to_degree AG ?f) )
+    :adds '( (is_facing AG EAST) (not (is_facing AG ?dir))
+             (is_tired_to_degree AG (+ ?f 0.1)) (not (is_tired_to_degree AG ?f)) )
 	)
 )
 
@@ -325,18 +336,21 @@
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   )
 
-(defun checkKey? (?item)
+(defun checkKey? (?item ?hunger)
   (if (equal (subseq  (symbol-name ?item) 0 3) "KEY")
     20 ;; if the item is a key, give it 20 as value
-    4
-    ))
+    (if (equal (subseq  (symbol-name ?item) 0 5) "APPLE")
+      (+ 0 ?hunger)
+      4
+)))
 
 
 (setq takeItem
-      (make-op :name 'takeItem :pars '(?pos ?dir ?item ?itemPos)
+      (make-op :name 'takeItem :pars '(?pos ?dir ?item ?itemPos ?hunger)
       :preconds '(
         (is_item ?item)
         (is_at AG ?pos) 
+        (is_hungry_to_degree AG ?hunger)
         (is_adjacent? ?pos ?itemPos)
         (is_at ?item ?itemPos)
         (is_facing AG ?dir)
@@ -346,7 +360,7 @@
                    )
       :effects '( (has AG ?item) )
       :time-required 1
-      :value '(checkKey? ?item)
+      :value '(checkKey? ?item ?hunger)
       )
 )
 
@@ -366,6 +380,9 @@
   :adds '( (has AG ?item) )
   )
 )
+
+(defun surprised? ()
+  (format t "~%~%******************************~%AGENT SAYS:~%Whoa what's in here?~%******************************~%~%"))
 
 (setq openContainer
       (make-op :name 'openContainer :pars '(?pos ?dir ?obj ?objPos ?item)
@@ -399,11 +416,12 @@
                    )
   :stopconds '( (is_open ?obj) )
   :deletes '( (is_hidden ?item) )
-  :adds '( (is_open ?obj) (not (is_hidden ?item)) )
+  :adds '( (is_open ?obj) (not (is_hidden ?item)) (surprised?) )
   )
 )
 
 (defun terminate? ()
+  (format t "~%~%******************************~%AGENT SAYS:~%Wooohoo I'm free!~%******************************~%~%")
   (format t "~%~%The agent escaped!~%~%")
   (exit))
 
@@ -490,7 +508,7 @@
                (not (is_tired_to_degree AG ?f)) 
                )
     :time-required 1
-    :value 1;'(- 3 ?f)
+    :value '(- 2 ?f)
     )
 )
 
