@@ -1,6 +1,10 @@
 (load "gridworld-worldmap.lisp")
+
+
 ; ===================================================================================================
-; Building world
+;=================
+; Building World =
+;=================
 
 (defvar *dungeonworld-points* '())
 (defvar *dungeonworld-paths* '())
@@ -13,21 +17,27 @@
 
 (def-roadmap *dungeonworld-points* *dungeonworld-paths*)
 
-
+;*******************
+; Initialize Types *
+;*******************
 (def-object 'robot '(is_animate can_talk))
-(def-object 'apple '(is_inanimate is_edible is_item (has_cost 3.0)))
-(def-object 'bomb '(is_explodable is_item (has_damage 10.0)))
+(def-object 'apple '(is_inanimate is_edible is_item))
 (def-object 'box '(is_inanimate is_openable))
 (def-object 'door '(is_inanimate is_accessible))
 (def-object 'key '(is_inanimate is_item))
 
+
+
+;****************
+; Place Objects *
+;****************
 
 (place-object 'door1@main 'door 'main&3&2 0 ;; like a door to go through a portal in the middle of a room
     nil
     '(
       )
     nil)
-#|
+
 (place-object 'box1@main 'box 'main&0&0 0
   '((apple apple0@main))
   '(
@@ -35,11 +45,10 @@
   nil)
 
 (place-object 'box2@main 'box 'main&4&4 0
-  '((bomb bomb0@main))
+  nil
   '(
     ) 
   nil)
-|#
 
 (place-object 'chest@main 'box 'main&3&2 0
     '((key key1@main))
@@ -47,7 +56,7 @@
       )
     nil)
 
-(place-object 'apple1@main 'apple 'main&1&5 0 
+(place-object 'apple1@main 'apple 'main&3&3 0 
 	nil 
 	'(
       (is_seeable apple1@main)
@@ -55,7 +64,7 @@
     nil 
 )
 
-(place-object 'apple2@main 'apple 'main&3&3 0 
+(place-object 'apple2@main 'apple 'main&5&1 0 
 	nil 
 	'(
       (is_seeable apple2@main)
@@ -63,7 +72,7 @@
     nil 
 )
 
-(place-object 'apple3@main 'apple 'main&5&1 0 
+(place-object 'apple3@main 'apple 'main&5&4 0 
 	nil 
 	'(
       (is_seeable apple3@main)
@@ -71,7 +80,7 @@
     nil 
 )
 
-(place-object 'apple4@main 'apple 'main&5&4 0 
+(place-object 'apple4@main 'apple 'main&3&1 0 
 	nil 
 	'(
       (is_seeable apple4@main)
@@ -79,38 +88,21 @@
     nil 
 )
 
-(place-object 'apple5@main 'apple 'main&5&4 0 
+#|
+(place-object 'apple5@main 'apple 'main&3&2 0 
 	nil 
 	'(
       (is_seeable apple5@main)
 	 )
     nil 
 )
-
-(place-object 'apple6@main 'apple 'main&3&1 0 
-	nil 
-	'(
-      (is_seeable apple6@main)
-	 )
-    nil 
-)
-
-(place-object 'apple7@main 'apple 'main&2&3 0 
-	nil 
-	'(
-      (is_seeable apple7@main)
-	 )
-    nil 
-)
-#|
-(place-object 'apple8@main 'apple 'main&3&2 0 
-	nil 
-	'(
-      (is_seeable apple8@main)
-	 )
-    nil 
-)
 |#
+
+
+
+;********
+; Agent *
+;********
 (place-object 'AG 'robot 'main&3&2 0
  nil
  '(
@@ -130,14 +122,31 @@
 )
 
 
+;********************
+; Include Operators *
+;********************
 (setq *operators* '(openDoor openContainer takeItem walk eat turn+north turn+south turn+west turn+east sleep answer_user_whq))
+
+;*********************
+; Define Search Beam *
+;*********************
 (setq *search-beam*
 	(list (cons 5 *operators*) (cons 4 *operators*) (cons 3 *operators*) ))
+
+
+
+
 ; ======================================================================================================
-; defining Actions
+;===================
+; Defining Actions =
+;===================
 
-; Perception
 
+
+
+;*************
+; Perception *
+;*************
 
 (defun saw? (pos dir)
  (let* ((sym-lst (split-regexp "&" (symbol-name pos)))
@@ -175,7 +184,9 @@
    (setq *visited-objects* (remove-duplicates *visited-objects*))
    objects))
 
-;Emotive Outputs
+;******************
+; Emotive Outputs *
+;******************
 (defun surprised? ()
   (format t "~%~%******************************~%AGENT SAYS:~%Whoa what's in here?~%******************************~%"))
 
@@ -190,7 +201,107 @@
 
 
 
+;**************************
+; Action Helper Functions *
+;**************************
 
+;Helper to see if two points are adjacent
+(defun is_adjacent? (?x ?y)
+  (equal 1
+    (+
+      (abs
+        (-
+          (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+          (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+      (abs
+        (-
+          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
+))
+
+;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
+(defun is_direction? (?dir ?x ?y)
+  (cond
+    ;((equal ?x ?y) NIL)
+    ((equal ?dir 'NORTH)
+      (and
+        (equal 0
+          (-
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+        (< 0
+          (-
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+    ((equal ?dir 'SOUTH)
+      (and
+        (equal 0
+          (-
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+        (> 0
+          (-
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+    ((equal ?dir 'EAST)
+      (and
+        (< 0
+          (-
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+        (equal 0
+          (-
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
+    ((equal ?dir 'WEST)
+      (and
+        (> 0
+          (-
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
+              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
+        (equal 0
+          (-
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
+              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
+  )
+
+(defun checkKey? (?item ?h)
+  (if (equal (subseq  (symbol-name ?item) 0 3) "KEY")
+    20 ;; if the item is a key, give it 20 as value
+    (if (equal (subseq  (symbol-name ?item) 0 5) "APPLE")
+      (+ 0 ?h)
+      4
+)))
+
+(defun terminate? ()
+  (format t "~%The agent escaped!~%~%")
+  (exit))
+
+(defun nextPos? (?curPos ?dir)
+  ;;"return the next position after action"
+  ;;(format t "pos: ~a dir: ~a ~%" ?curPos ?dir)
+  (cond 
+    ((equal ?dir 'EAST)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (+ 1 (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos))))) 
+                                          (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
+    ((equal ?dir 'WEST)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (- (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos)))) 1) 
+                                          (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
+    ((equal ?dir 'NORTH)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (cadr (split-regexp "&" (symbol-name ?curPos)))
+                                          (+ 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))))
+    ((equal ?dir 'SOUTH)
+      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
+                                          (cadr (split-regexp "&" (symbol-name ?curPos)))
+                                          (- (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))) 1)))))
+  ))
+
+;**********
+; Actions *
+;**********
 
 (setq turn+north
       (make-op :name 'turn+north :pars '(?dir ?f)
@@ -281,6 +392,7 @@
 )
 
 
+
 (setq see.actual 
 	(make-op.actual :name 'see.actual :pars '(?dir ?pos ?objects)
 	:startconds '( (eyes_open AG) (is_facing AG ?dir) (is_at AG ?pos) (can_see AG ?objects) ) 
@@ -290,73 +402,6 @@
 	)
 )
 
-;Helper to see if two points are adjacent
-(defun is_adjacent? (?x ?y)
-  (equal 1
-    (+
-      (abs
-        (-
-          (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-          (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-      (abs
-        (-
-          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-          (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))
-))
-
-;Helper to test that ?x is ?dir of ?y (e.g. x is NORTH of y or similar)
-(defun is_direction? (?dir ?x ?y)
-  (cond
-    ;((equal ?x ?y) NIL)
-    ((equal ?dir 'NORTH)
-      (and
-        (equal 0
-          (-
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-        (< 0
-          (-
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-    ((equal ?dir 'SOUTH)
-      (and
-        (equal 0
-          (-
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-        (> 0
-          (-
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-    ((equal ?dir 'EAST)
-      (and
-        (< 0
-          (-
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-        (equal 0
-          (-
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y)))))))))
-    ((equal ?dir 'WEST)
-      (and
-        (> 0
-          (-
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?x))))
-              (parse-integer (cadr (split-regexp "&" (symbol-name ?y))))))
-        (equal 0
-          (-
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?x)))))
-              (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
-  )
-
-(defun checkKey? (?item ?h)
-  (if (equal (subseq  (symbol-name ?item) 0 3) "KEY")
-    20 ;; if the item is a key, give it 20 as value
-    (if (equal (subseq  (symbol-name ?item) 0 5) "APPLE")
-      (+ 0 ?h)
-      4
-)))
 
 
 (setq takeItem
@@ -434,9 +479,6 @@
 )
 
 
-(defun terminate? ()
-  (format t "~%The agent escaped!~%~%")
-  (exit))
 
 (setq openDoor
       (make-op :name 'openDoor
@@ -482,33 +524,15 @@
 )
 
 
-; Modified from orginal file
+;*************************************
+; Actions Modified From Example File *
+;*************************************
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; With operator walk, AG walks from point ?x to point ?y, with 
 ;; initial fatigue level ?f, assuming speed of one unit per time step.
 ;; This is the `model' version.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun nextPos? (?curPos ?dir)
-  ;;"return the next position after action"
-  ;;(format t "pos: ~a dir: ~a ~%" ?curPos ?dir)
-  (cond 
-    ((equal ?dir 'EAST)
-      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
-                                          (+ 1 (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos))))) 
-                                          (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
-    ((equal ?dir 'WEST)
-      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
-                                          (- (parse-integer (cadr (split-regexp "&" (symbol-name ?curPos)))) 1) 
-                                          (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))
-    ((equal ?dir 'NORTH)
-      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
-                                          (cadr (split-regexp "&" (symbol-name ?curPos)))
-                                          (+ 1 (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))))))))
-    ((equal ?dir 'SOUTH)
-      (intern (format nil "~{~a~^&~}" (list (car (split-regexp "&" (symbol-name ?curPos))) 
-                                          (cadr (split-regexp "&" (symbol-name ?curPos)))
-                                          (- (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?curPos))))) 1)))))
-  ))
 
 (setq walk 
   (make-op :name 'walk :pars '(?x ?dir ?f)
@@ -594,6 +618,8 @@
   )
 )
 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; With operator sleep, AG sleeps to relieve his fatigue ?f, but experiences 
 ;; an increase in his hunger ?h.
@@ -637,7 +663,9 @@
 )
 
 
-; The following is from the gridworld-world.lisp file:
+;*******************************************
+; Actions Taken Directly From Example File *
+;*******************************************
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Function answer_to_whq? returns a collection of well-formed formula(s) 
