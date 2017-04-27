@@ -74,6 +74,9 @@
 ;(defparameter *right-comoving-preds* nil)
 (defparameter *right-comoving-preds* '(has))
 
+(defparameter *object-names* '() )
+(defparameter *object-name-types* (make-hash-table :test #'equal))
+
 (defun def-roadmap (points roads); Revised Dec. 2009 by Daphne Liu
 ;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; Create a graph-like "roadmap", consisting of points (nodes) and
@@ -327,6 +330,8 @@
     	(add_tuple_to_hashtable f *world-facts* 'NIL)
     	(add_tuple_to_hashtable f *protected-facts* 'NIL)
     )
+    (push name *object-names*)
+    (setf (gethash name *object-name-types*) obj-type)
 
     facts ; output the new facts
  )); end of place-object

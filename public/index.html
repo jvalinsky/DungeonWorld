@@ -29,20 +29,22 @@ function renderPoints (points) {
     })
 } 
 
-function renderLocations (data) {
+function renderObjects (data) {
     console.dir(data)
-    data.forEach(function(object) {
+    var lst = data['data']
+    lst.forEach(function(object) {
         var name = object['name']
         var type = object['type']
         var x = object['x']
         var y = object['y']
         var temp = new paper.Path.Circle(x*50 + 800, y*50 + 100, 5)
-        if(type == "AG") {
-            temp.fillColor = 'blue'
-        } else if(type == "apple") {
-            temp.fillColor = 'red'
-        } else {
+        if(type == "ROBOT") {
+            temp.strokeColor = 'red'
+            temp.strokeWidth = 4
+        } else if(type == "APPLE") {
             temp.fillColor = 'green'
+        } else {
+            temp.fillColor = 'yellow'
         }
         console.log("updated location for " + 
             name + " type: " + type + " new location: (" + x + "," + y + ")")
@@ -54,14 +56,14 @@ function renderEval (output) {
     text.content = output
 }
 
-function updateLocations() {
+function updateObjects() {
     var xhr = new XMLHttpRequest()
     var contentType= "text/json; charset=UTF-8"
-    xhr.open("GET", "/object-locations", true)
+    xhr.open("GET", "/objects", true)
     xhr.setRequestHeader("Content-type", contentType)
     xhr.onload = function () {
     var data = JSON.parse(this.responseText)
-        renderLocations(data)
+        renderObjects(data)
     }
     xhr.send()
 }
@@ -78,6 +80,7 @@ xhr.onload = function () {
 }
 xhr.send()
 
+updateObjects()
 
 
 
@@ -94,6 +97,7 @@ button.onclick = function (event) {
     xhr.setRequestHeader("Content-type", contentType)
     xhr.onload = function () {
         renderEval(this.responseText)
+        updateObjects()
     }
 
     xhr.send(params)

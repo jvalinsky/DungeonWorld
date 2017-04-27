@@ -7,7 +7,7 @@
   (:use :cl
         :ningle
         :yason)
-  (:import-from cl-user go_web! listen! get-points split-regexp parse-integer read-from-string eval get-obj-types get-obj-type points-to-htable world-pts get-object-locations)
+  (:import-from cl-user go_web! listen! get-points split-regexp parse-integer read-from-string eval get-obj-types get-obj-type points-to-htable world-pts get-objs)
   (:import-from :lack.response
                 :response-headers
                 :response-body)
@@ -19,11 +19,11 @@
 (defvar *app* (make-instance 'ningle:<app>))
 
 (defun render-json (object)
-  (let ((s nil))
-  (setf (getf (response-headers *response*) :content-type) "application/json")
-  (setf (getf (response-headers *response*) :charset) "utf-8")
-  (with-output-to-string (s)
-    (yason:encode object s))))
+  (let ((strstream (make-string-output-stream)))
+    (setf (getf (response-headers *response*) :content-type) "application/json")
+    (setf (getf (response-headers *response*) :charset) "utf-8")
+    (yason:encode object strstream)
+    (get-output-stream-string strstream)))
 
 (setf (ningle:route *app* "/gridworld-points" :method :GET)
       #'(lambda (params)
@@ -37,10 +37,10 @@
           (format t "~a~%" command)
           output)))
 
-(setf (ningle:route *app* "/object-locations" :method :GET)
+(setf (ningle:route *app* "/objects" :method :GET)
       #'(lambda (params)
           (declare (ignore params))
-          (render-json (object-locations))))
+          (render-json (get-objs))))
 
 (setf *app* (lack:builder
  (:static :path (lambda (path)
@@ -50,6 +50,7 @@
                     ((equal "/index" path) "/index.html")
                     ((equal "/gridworld-points" path) nil)
                     ((equal "/eval" path) nil)
+                    ((equal "/objects" path) nil)
                     (t path)))
           :root "./public/")
  :accesslog

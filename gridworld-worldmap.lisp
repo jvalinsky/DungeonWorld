@@ -25,12 +25,32 @@
                            collect (intern (format nil "~{~a~^&~}" (list ?room x y))))))
 
 (defun get-obj-type (object)
-   (car (car 
-          (remove-if #'(lambda (x) (or (null x) (not (equal object (cadr x))))) 
-                     (mapcar #'(lambda (type) (cadr (gethash (list type nil) *world-facts*))) *obj-types*)))))
-
+   (symbol-name (gethash object *object-name-types*)))
+         
 (defun get-object-location (object)
-  (caddr (cadr (gethash (list 'is_at object nil) *world-facts*))))
+  (let* ((pt (caddr (cadr (gethash (list 'is_at object nil) *world-facts*))))
+        (ptlst (split-regexp "&" (symbol-name pt)))
+        (x (parse-integer (cadr ptlst)))
+        (y (parse-integer (caddr ptlst))))
+    (list x y)))
+
+(defun get-object (name)
+  (let* ((obj (make-hash-table :test #'equal))
+        (obj-type (get-obj-type name))
+        (loc (get-object-location name))
+        (x (car loc))
+        (y (cadr loc)))
+    (setf (gethash "name" obj) (symbol-name name))
+    (setf (gethash "x" obj) x)
+    (setf (gethash "y" obj) y)
+    (setf (gethash "type" obj) obj-type)
+    obj))
+
+(defun get-objs ()
+  (let ((objs (make-hash-table :test #'equal))
+        (objlst (mapcar #'get-object *object-names*)))
+    (setf (gethash "data" objs) objlst)
+    objs))
 
 (defun point-to-htable (point)
   (let* ((plist (split-regexp "&" (symbol-name point)))
@@ -50,13 +70,13 @@
         (x (parse-integer (cadr plist)))
         (y (parse-integer (caddr plist)))
         (pobj htable)
-        (data (make-hash-table :test 'equal)))
+        (data (make-hash-table :test #'equal)))
     (setf (gethash "x" data) x)
     (setf (gethash "y" data) y)
     (setf (gethash room pobj) (append (gethash room pobj) (list data)))))
 
 (defun points-to-htable (points)
-  (let ((psobj (make-hash-table :test 'equal)))
+  (let ((psobj (make-hash-table :test #'equal)))
     (mapcar #'(lambda (p) (points-to-htable-helper p psobj)) points)
     psobj))
 
