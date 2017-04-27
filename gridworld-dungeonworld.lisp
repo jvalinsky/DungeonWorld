@@ -175,6 +175,21 @@
    (setq *visited-objects* (remove-duplicates *visited-objects*))
    objects))
 
+;Emotive Outputs
+(defun surprised? ()
+  (format t "~%~%******************************~%AGENT SAYS:~%Whoa what's in here?~%******************************~%"))
+
+(defun satisfied? ()
+  (format t "~%~%******************************~%AGENT SAYS:~%Yum, I needed that!~%******************************~%"))
+
+(defun rested? ()
+   (format t "~%~%******************************~%AGENT SAYS:~%Ah that was a good nap!~%******************************~%"))
+
+(defun happy? ()
+   (format t "~%~%******************************~%AGENT SAYS:~%Wooohoo I'm free!~%******************************~%"))
+
+
+
 
 
 (setq turn+north
@@ -380,8 +395,7 @@
   )
 )
 
-(defun surprised? ()
-  (format t "~%~%******************************~%AGENT SAYS:~%Whoa what's in here?~%******************************~%~%"))
+
 
 (setq openContainer
       (make-op :name 'openContainer :pars '(?pos ?dir ?obj ?objPos ?item)
@@ -419,8 +433,8 @@
   )
 )
 
+
 (defun terminate? ()
-  (format t "~%~%******************************~%AGENT SAYS:~%Wooohoo I'm free!~%******************************~%")
   (format t "~%The agent escaped!~%~%")
   (exit))
 
@@ -461,6 +475,7 @@
                 )
         :adds '(
                 (has_won AG)
+                (happy?)
                 (terminate?)
                 )
     )
@@ -511,8 +526,6 @@
     )
 )
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; With operator walk.actual, AG walks from point ?x to point ?y on road ?z,  
 ;; with initial fatigue level ?f, assuming speed of one unit per time step.
@@ -537,6 +550,7 @@
                )
     )
 )
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -576,7 +590,7 @@
                 )
   :stopconds '( (is_hungry_to_degree AG 0.0) )
   :deletes '( (is_hungry_to_degree AG ?#1) (has AG ?x) )
-  :adds '( (is_hungry_to_degree AG 0.0) )
+  :adds '( (is_hungry_to_degree AG 0.0) (satisfied?) )
   )
 )
 
@@ -618,7 +632,7 @@
     :deletes '((is_tired_to_degree AG ?#1) 
                (is_hungry_to_degree AG ?#2) )
     :adds '((is_tired_to_degree AG (- ?f (* 0.5 (elapsed_time?))))
-            (is_hungry_to_degree AG (+ ?h (* 0.25 (elapsed_time?)))) ) 
+            (is_hungry_to_degree AG (+ ?h (* 0.25 (elapsed_time?)))) (rested?) ) 
     )
 )
 
