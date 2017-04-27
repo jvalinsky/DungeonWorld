@@ -102,16 +102,15 @@
 	 )
     nil 
 )
-
-(place-object 'apple8@main 'apple 'main&3&0 0 
+#|
+(place-object 'apple8@main 'apple 'main&3&2 0 
 	nil 
 	'(
       (is_seeable apple8@main)
 	 )
     nil 
 )
-
-
+|#
 (place-object 'AG 'robot 'main&3&2 0
  nil
  '(
@@ -131,7 +130,7 @@
 )
 
 
-(setq *operators* '(openDoor openContainer takeItem walk turn+north turn+south turn+west turn+east answer_user_whq))
+(setq *operators* '(openDoor openContainer takeItem walk eat turn+north turn+south turn+west turn+east sleep answer_user_whq))
 (setq *search-beam*
 	(list (cons 5 *operators*) (cons 4 *operators*) (cons 3 *operators*) ))
 ; ======================================================================================================
@@ -336,31 +335,31 @@
               (parse-integer (cadr (cdr (split-regexp "&" (symbol-name ?y))))))))))
   )
 
-(defun checkKey? (?item ?hunger)
+(defun checkKey? (?item ?h)
   (if (equal (subseq  (symbol-name ?item) 0 3) "KEY")
     20 ;; if the item is a key, give it 20 as value
     (if (equal (subseq  (symbol-name ?item) 0 5) "APPLE")
-      (+ 0 ?hunger)
+      (+ 0 ?h)
       4
 )))
 
 
 (setq takeItem
-      (make-op :name 'takeItem :pars '(?pos ?dir ?item ?itemPos ?hunger)
+      (make-op :name 'takeItem :pars '(?pos ?dir ?item ?itemPos ?h)
       :preconds '(
         (is_item ?item)
-        (is_at AG ?pos) 
-        (is_hungry_to_degree AG ?hunger)
+        (is_at AG ?pos)
         (is_adjacent? ?pos ?itemPos)
         (is_at ?item ?itemPos)
         (is_facing AG ?dir)
         (is_direction? ?dir ?itemPos ?pos)
         (not (has AG ?item))
         (not (is_hidden ?item))
+        (is_hungry_to_degree AG ?h)
                    )
       :effects '( (has AG ?item) )
       :time-required 1
-      :value '(checkKey? ?item ?hunger)
+      :value '(checkKey? ?item ?h)
       )
 )
 
@@ -421,8 +420,8 @@
 )
 
 (defun terminate? ()
-  (format t "~%~%******************************~%AGENT SAYS:~%Wooohoo I'm free!~%******************************~%~%")
-  (format t "~%~%The agent escaped!~%~%")
+  (format t "~%~%******************************~%AGENT SAYS:~%Wooohoo I'm free!~%******************************~%")
+  (format t "~%The agent escaped!~%~%")
   (exit))
 
 (setq openDoor
@@ -540,8 +539,91 @@
 )
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; If hungry, at the same location ?y as is an is_edible food item ?x, and 
+;; aware of the item being is_edible, then AG can eat the item to assuage his 
+;; hunger ?h provided there is no fire or flood. Currently, food items are 
+;; inexhaustible.
+;; This is the `model' version.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq eat 
+  (make-op :name 'eat :pars '(?h ?x) ; level of hunger ?h
+  :preconds '( (is_hungry_to_degree AG ?h) 
+               (>= ?h 2.0)
+               (is_edible ?x)
+               (has AG ?x)
+              )
+  :effects '( (is_hungry_to_degree AG 0.0) (not(has AG ?x))
+              (not (is_hungry_to_degree AG ?h)) )
+  :time-required 1
+  :value '(* 2 ?h)
+  )
+)
 
-; The following is from the gridworld-world.lisp file (for testing purposes right now):
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; If at the same location ?y as is an is_edible food item ?x and aware of 
+;; the item being is_edible, and as long as he is hungry, then AG can eat the 
+;; item to assuage his hunger ?h provided there is no fire or flood.
+;; Currently, food items are inexhaustible.
+;; This is the `actual' version.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq eat.actual 
+  (make-op.actual :name 'eat.actual :pars '(?h ?x)
+  :startconds '( (is_hungry_to_degree AG ?h) 
+                 (>= ?h 2.0)
+                 (is_edible ?x)
+                 (has AG ?x)
+                )
+  :stopconds '( (is_hungry_to_degree AG 0.0) )
+  :deletes '( (is_hungry_to_degree AG ?#1) (has AG ?x) )
+  :adds '( (is_hungry_to_degree AG 0.0) )
+  )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; With operator sleep, AG sleeps to relieve his fatigue ?f, but experiences 
+;; an increase in his hunger ?h.
+;; This is the `model' version.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq sleep 
+  (make-op :name 'sleep :pars '(?f ?h) ; level of fatigue ?f 
+                                         ; {0, 0.5, 1.0, 1.5, ...}
+                                         ; similarly for hunger ?h
+    :preconds '((is_tired_to_degree AG ?f)
+                (>= ?f 2.5);(>= ?f 0.5)
+                (is_hungry_to_degree AG ?h)
+                (> ?f ?h) ; more tired than hungry
+                )
+    :effects '( (is_tired_to_degree AG 0.0)
+                (not (is_tired_to_degree AG ?f))
+                (is_hungry_to_degree AG (+ ?h (* 0.5 ?f))) )
+    :time-required '(* 4 ?f)
+    :value '(* 1 ?f)
+    )
+)
+                  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; With operator sleep.actual, AG sleeps to relieve his fatigue ?f, but 
+;; experiences an increase in his hunger ?h.
+;; This is the `actual' version.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq sleep.actual 
+  (make-op.actual :name 'sleep.actual :pars '(?f ?h) ; level of fatigue ?f 
+                                                     ; level of hunger ?h
+    :startconds '((is_tired_to_degree AG ?f)
+                  (>= ?f 2.5)
+                  (is_hungry_to_degree AG ?h)
+                  (> ?f ?h) ); more tired than hungry
+    :stopconds '( (is_tired_to_degree AG 0.0) )
+    :deletes '((is_tired_to_degree AG ?#1) 
+               (is_hungry_to_degree AG ?#2) )
+    :adds '((is_tired_to_degree AG (- ?f (* 0.5 (elapsed_time?))))
+            (is_hungry_to_degree AG (+ ?h (* 0.25 (elapsed_time?)))) ) 
+    )
+)
+
+
+; The following is from the gridworld-world.lisp file:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Function answer_to_whq? returns a collection of well-formed formula(s) 
