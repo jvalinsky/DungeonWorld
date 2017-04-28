@@ -3,6 +3,25 @@
 CSC 291 Final Project
 ----------------------
 
+## How to run (terminal)
+start allegro common lisp (on the undegrad cycles it is alisp, this will not work in steel bank common lisp)
+(load "init.lisp")
+
+use go! and listen! macros to interact with and step through execution of gridworld code
+
+## How to run (Web GUI)
+
+**need quicklisp installed!**
+See quicklisp website for installing quicklisp (it's a package manager for handling external common lisp libraries)
+Once quicklisp is set up to load everytime the allegro common lisp is started then one can start the server using:
+(load "server.lisp")
+
+Using a web browser navigate to localhost:5000 to see the web GUI
+
+The button go runs the go! macro, listen runs the listen! macro and has a text field for input, eval can run arbitrary lisp
+code. eval is meant for debugging purposes and is not recommended for use on a public server.
+
+
 #### `gridworld-worldmap.lisp`
 * A room can be represented using points and edges as following:
 ```
