@@ -3,6 +3,12 @@
 CSC 291 Final Project
 ----------------------
 
+Dungeon World is a computer simulation of how an intellectual agent might behave in a preset dungeon environment. The simulation program is built on top of the GridWorld framework, which provides functionalities such as world knowledge representation and state node generation and searching. By using the GridWorld framework, an agent is created and is able to respond to various stimulus according to its internal states as well as external information in the simulated dungeon.
+
+At the beginning of the program, the user can find the agent waking in the middle of a mysterious room, which has a door locked. The goal for both of the user and the agent would be exiting the room. Since the door is locked, a sub-goal for the user and agent is finding the key that can let it open the door. However, since the agent is not really goal-oriented when making the decision, the user have to influence its decision-making process by placing new objects during the middle of execution and eventually lead the agent to the door. 
+
+The time steps that the agent is allowed for taking actions is limited due to the fact that the room is continuously filling with gas at each step. Therefore, the user have to let the agent to exit the room (i.e. find the key and open the door) as soon as possible. 
+
 ## How to run (terminal)
 start allegro common lisp (on the undegrad cycles it is alisp, this will not work in steel bank common lisp)
 (load "init.lisp")
@@ -21,6 +27,9 @@ Using a web browser navigate to localhost:5000 to see the web GUI
 The button go runs the go! macro, listen runs the listen! macro and has a text field for input, eval can run arbitrary lisp
 code. eval is meant for debugging purposes and is not recommended for use on a public server.
 
+
+The GUI was implemented as a REST API using the ningle (web framework), yason (json encoding), and clack (http, middleware) libraries for common lisp.
+The server serves the static files in the public folder and exposes several routes that the frontend uses to render the current world.
 
 #### `gridworld-worldmap.lisp`
 * A room can be represented using points and edges as following:
