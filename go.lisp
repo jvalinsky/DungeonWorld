@@ -7,12 +7,15 @@
 ; and *states*.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun go! ( ) ; Revised Dec. 2009
-        (let (poss-actions step action-name old-wffs old-terms)
+; modified April 2017 by Jack Valinsky so that it returns a string of everything it prints to stdout
+(defun go! (&optional (output)) ; Revised Dec. 2009
+        (let (poss-actions step action-name old-wffs old-terms temp-str (output-str nil))
 
-(format t "~% GO ~%")
+(setf temp-str (format nil "~% GO ~%"))
+(format t "~a" temp-str)
+(setf output-str temp-str)
                 ;Handle the spontaneous fire and flood.
-                (handleExtOps-Dungeon)
+                (setf output-str (concatenate 'string output-str (handleExtOps-Dungeon)))
                 ; Above line commented out only for opportunic runs
 
 
@@ -24,8 +27,12 @@
                       (incf *real-clock* 1)
                       (return-from go! "NO MORE ACTIONS POSSIBLE!")
                 )
- (format t "~%~%POSSIBLE ACTIONS & VALUES: ~a" poss-actions)
- (format t "~%SEEMINGLY BEST PLAN: ~a" *plan*)
+ (setf temp-str (format nil "~%~%POSSIBLE ACTIONS & VALUES: ~a" poss-actions))
+ (format t "~a" temp-str)
+ (setf output-str (concatenate 'string output-str temp-str))
+ (setf temp-str (format nil "~%SEEMINGLY BEST PLAN: ~a" *plan*))
+ (format t "~a" temp-str)
+ (setf output-str (concatenate 'string output-str temp-str))
 
                 ; Reset *curr-state-node* to the first (leftmost) successor.
                 (setq old-wffs (state-node-wff-htable *curr-state-node*))
@@ -38,8 +45,12 @@
                         (state-node-wff-htable *curr-state-node*) 'NIL)
 
                 (setq step (pop *plan*))
- (format t "~%~%STEP TO BE TAKEN: ~a" step)
- (format t "~%EXPECTED STATE; ~%  ~a" (second *states*))
+ (setf temp-str (format nil "~%~%STEP TO BE TAKEN: ~a" step))
+ (format t "~a" temp-str)
+ (setf output-str (concatenate 'string output-str temp-str))
+ (setf temp-str (format nil "~%EXPECTED STATE; ~%  ~a" (second *states*)))
+ (format t "~a" temp-str)
+ (setf output-str (concatenate'string  output-str temp-str))
                 (pop *plan*)
                 ; Remove the previous state and bring to the fore the expected 
                 ; current state.
@@ -61,8 +72,8 @@
                 (setq action-name (car (state-node-parent *curr-state-node*)))
                 (setq *node-now* *curr-state-node*)
                 ;(format t "action-name: ~a~%" action-name)
-                (implement-effects action-name)
-        )
+                (setf output-str (concatenate 'string output-str (implement-effects action-name)))
+        (if output output-str T))
 
 ); end of go!
 

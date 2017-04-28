@@ -24,9 +24,12 @@
                      (loop for y from ?y1 to ?y2
                            collect (intern (format nil "~{~a~^&~}" (list ?room x y))))))
 
+; Helper functions for server, they return either strings or hashtables that are converted
+; to json by the server
 (defun get-obj-type (object)
    (symbol-name (gethash object *object-name-types*)))
-         
+
+; list (x,y) of position of object
 (defun get-object-location (object)
   (let* ((pt (caddr (cadr (gethash (list 'is_at object nil) *world-facts*))))
         (ptlst (split-regexp "&" (symbol-name pt)))
@@ -34,6 +37,7 @@
         (y (parse-integer (caddr ptlst))))
     (list x y)))
 
+; get info on object hashtable of name, type, location, and if AG the direction it is facing
 (defun get-object (name)
   (let* ((obj (make-hash-table :test #'equal))
         (obj-type (get-obj-type name))
@@ -52,6 +56,7 @@
     (setf (gethash "data" objs) objlst)
     objs))
 
+; convert point symbol to hashtable with room, x, and y keys
 (defun point-to-htable (point)
   (let* ((plist (split-regexp "&" (symbol-name point)))
         (room (car plist))
@@ -64,6 +69,8 @@
     (setf (gethash "y" pobj) y)
     pobj))
 
+; modifies hashtable to add point under key for its room
+; a point is a hashtable with x and y keys
 (defun points-to-htable-helper (point htable)
   (let* ((plist (split-regexp "&" (symbol-name point)))
         (room (car plist))
@@ -75,11 +82,13 @@
     (setf (gethash "y" data) y)
     (setf (gethash room pobj) (append (gethash room pobj) (list data)))))
 
+; get big hash table of hash table of points where keys are the different rooms
 (defun points-to-htable (points)
   (let ((psobj (make-hash-table :test #'equal)))
     (mapcar #'(lambda (p) (points-to-htable-helper p psobj)) points)
     psobj))
 
+; get all points in world
 (defun world-pts ()
   (mapcar #'cadr (cdr (get-points))))
 

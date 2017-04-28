@@ -1342,15 +1342,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Daphne: Revised 10/9/2012 to handle new representation of terms
-(defun listen! ()
+; Jack Valinsky April 2017:
+; modifed version of listen! that can take a string as input and returns a string of everything that
+; listen! prints to stdout, use input-str to supply input string and output as a boolean flag as
+; whether to output a string or just T if function finishes w/o error
+(defun listen! (&optional input-str output)
 	(let ((user-input 'NIL) (lst 'NIL) (implied-facts 'NIL) 
 		  (tell-lst 'NIL) (neglst 'NIL) curr-tell curr-ans
 		  (new-terms (state-node-terms *curr-state-node*))
 		  user-input-intention
 		  (new-wff-htable (state-node-wff-htable *curr-state-node*))
+          (output-str "")
+          temp-str
 		 )
-		(format t "You're welcome to ask AG a question or tell it a fact.~%")
-		(setq user-input (read))
+		(setf temp-str (format nil "You're welcome to ask AG a question or tell it a fact.~%"))
+        (format t "~a" temp-str)
+        (setf output-str (concatenate 'string output-str temp-str))
+		(if input-str
+          ; reads from string instead of stdin
+          (setq user-input (read-from-string input-str))
+          (setq user-input (read)))
+
 		(setq user-input (mapcar #'(lambda(y) (list (first y) (parseIntoPred (second y)))) user-input))
 		(when (and (listp user-input) (not (null user-input)))
 			(dolist (i user-input)
@@ -1384,12 +1396,19 @@
 							(setq neglst (unionf neglst (list (list 'not curr-tell))))
 						)
 					)
+                    ; adding stdout print statements to output-str
 					(cond ((eq curr-ans 'UNKNOWN)
-							(format t "~%Your assertion ~a has an unknown truth value in the simulated world so it is not added under the closed world assumption.~%" curr-tell)
-						  )
+							(progn
+                             (setf temp-str (format nil "~%Your assertion ~a has an unknown truth value in the simulated world so it is not added under the closed world assumption.~%" curr-tell))
+						    (format t "~a" temp-str)
+                            (setf output-str (concatenate 'string output-str temp-str))
+                            ))
 						  (t ;(eq curr-ans 'NIL)
-							(format t "~%The negation of your assertion ~a is true in the simulated world so your assertion is not added to avoid introducing inconsistency.~%" curr-tell)
-						  )
+							(progn
+                             (setf temp-str (format nil "~%The negation of your assertion ~a is true in the simulated world so your assertion is not added to avoid introducing inconsistency.~%" curr-tell))
+						    (format t "~a" temp-str)
+                            (setf output-str (concatenate 'string output-str temp-str))
+						  ))
 					)
 						;(format t "Are you sure you want to add it (enter y or n)?~%" curr-tell)
 						;(setq user-input (read))
@@ -1419,7 +1438,7 @@
 			(setq new-state (copy_construct_hashtable (notice-new-local-facts *curr-state-node*)))
 			(setq *states* (cons new-state (cdr *states*)))
 		)
-		T
+		(if output output-str T)
 	)
 ); end of listen!
 
@@ -1482,6 +1501,22 @@
 		(format t "~%~%~A~%" (concatenate 'string "AG DOES NOT KNOW WHETHER " (simplifyString input-wff print-var)))
 		(format t "~%~%~A~%" (simplifyString wff))
 	)
+); end of verbalize
+
+; modified version to output string, used for web server
+(defun verbalize* (wff &OPTIONAL (input-wff 'NIL) &OPTIONAL (print-var 'NIL))
+  (let ((output-str "")
+        temp-str)
+;(format t "input-wff verbalize is ~a ~%" input-wff)
+	(if (and (eq wff 'UNKNOWN) (not (null input-wff)))
+		(setf temp-str (format nil "~%~%~A~%" (concatenate 'string "AG DOES NOT KNOW WHETHER " (simplifyString input-wff print-var))))
+        (setf output-str (concatenate 'string output-str temp-str))
+        (format t "~a" temp-str)
+		(setf temp-str (format nil "~%~%~A~%" (simplifyString wff)))
+        (setf output-str (concatenate 'string output-str temp-str))
+        (format t "~a" temp-str)
+	)
+    output-str)
 ); end of verbalize
 
 (defun replaceVarWithAnything (wff any-symb)

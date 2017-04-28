@@ -8,6 +8,13 @@
 <script type="text/javascript">
 window.onload = function() {
 
+//global to check if simulation run is over
+var is_over = false
+
+//globel for agent direction
+var agent_direction = "SOUTH"
+var prev_sight = null
+
 var canvas = document.getElementById('myCanvas')
 paper.setup(canvas)
 
@@ -19,6 +26,32 @@ var text = new paper.PointText({
     fontWeight: 'bold',
     fontSize: 15
 })
+
+function restartGridworld() {
+    var xhr = new XMLHttpRequest()
+    var contentType= "text/json; charset=UTF-8"
+    xhr.open("GET", "/restart", true)
+    xhr.setRequestHeader("Content-type", contentType)
+    xhr.onload = function () {
+        console.log("grid world restarted")
+    }
+    xhr.send()
+}
+
+function checkSimOver() {
+    var xhr = new XMLHttpRequest()
+    var contentType= "text/json; charset=UTF-8"
+    xhr.open("GET", "/is_over", true)
+    xhr.setRequestHeader("Content-type", contentType)
+    xhr.onload = function () {
+    var data = JSON.parse(this.responseText)
+        if(data !== null) {
+            is_over = true
+            text.content = "******************************\nAGENT SAYS:\nWooohoo I'm free!\n******************************\nThe agent escaped!"
+        }
+    }
+    xhr.send()
+}
 
 function renderPoints (points) {
     console.dir(points)
@@ -32,31 +65,90 @@ function renderPoints (points) {
 function renderObjects (data) {
     console.dir(data)
     var lst = data['data']
+    var robot = null
+    var temp
     lst.forEach(function(object) {
         var name = object['name']
         var type = object['type']
         var x = object['x']
         var y = object['y']
-        var temp = new paper.Path.Circle(x*50 + 800, y*50 + 100, 5)
+        temp = new paper.Path.Circle(x*50 + 800, y*50 + 100, 5)
         if(type == "ROBOT") {
-            temp.strokeColor = 'red'
-            temp.strokeWidth = 4
+            temp.fillColor = 'red'
+            robot = [x,y]
         } else if(type == "APPLE") {
             temp.fillColor = 'green'
         } else {
             temp.fillColor = 'yellow'
         }
+        temp.strokeColor = 'black'
+        temp.strokeWidth = 2
+
         console.log("updated location for " + 
             name + " type: " + type + " new location: (" + x + "," + y + ")")
     })
+    if(robot !== null) {
+        var loc = [robot[0]*50 + 800, robot[1]*50 + 100]
+        temp = new paper.Path.Circle(loc[0], loc[1], 5)
+        temp.strokeColor = 'red'
+        temp.strokeWidth = 2
+        var endSight = [0,0]
+
+        switch(agent_direction) {
+            case "SOUTH":
+                endSight = [loc[0], loc[1] - 50]
+                break
+            case "NORTH":
+                endSight = [loc[0], loc[1] + 50]
+                break
+            case "EAST":
+                endSight = [loc[0] + 50, loc[1]]
+                break
+            case "WEST":
+                endSight = [loc[0] - 50, loc[1]]
+                break
+            default:
+                return
+                break
+        }
+
+        if(prev_sight !== null) {
+            prev_sight.remove()
+            prev_sight = null
+        }
+
+        var start = new paper.Point(loc[0],  loc[1])
+        var sightLine = new paper.Path([start, endSight])
+        sightLine.strokeColor = 'red'
+        prev_sight = sightLine
+    }
+
 } 
 
-function renderEval (output) {
+function renderText (output) {
     console.log(output)
     text.content = output
 }
 
+function updateAgentDirection() {
+    var xhr = new XMLHttpRequest()
+    var contentType= "text/json; charset=UTF-8"
+    xhr.open("GET", "/agent_direction", true)
+    xhr.setRequestHeader("Content-type", contentType)
+    xhr.onload = function () {
+    var data = JSON.parse(this.responseText)
+        agent_direction = data 
+    }
+    xhr.send()
+}
+
 function updateObjects() {
+    if(is_over) {
+        restartGridworld()
+    }
+
+    updateAgentDirection()
+
     var xhr = new XMLHttpRequest()
     var contentType= "text/json; charset=UTF-8"
     xhr.open("GET", "/objects", true)
@@ -81,13 +173,16 @@ xhr.onload = function () {
 xhr.send()
 
 updateObjects()
+checkSimOver()
 
 
 
-button = document.getElementById("button")
+evalBtn = document.getElementById("evalBtn")
+goBtn = document.getElementById("goBtn")
+listenBtn = document.getElementById("listenBtn")
 
-button.onclick = function (event) {
-    textVal = document.getElementById("val").value
+evalBtn.onclick = function (event) {
+    textVal = document.getElementById("eval").value
     console.log("text: " + textVal)
     var xhr = new XMLHttpRequest()
     var contentType= "application/x-www-form-urlencoded; charset=UTF-8"
@@ -96,11 +191,50 @@ button.onclick = function (event) {
     xhr.open("POST", "/eval", true)
     xhr.setRequestHeader("Content-type", contentType)
     xhr.onload = function () {
-        renderEval(this.responseText)
+        renderText(this.responseText)
         updateObjects()
     }
 
     xhr.send(params)
+
+    checkSimOver()
+}
+
+goBtn.onclick = function (event) {
+    console.log("go! command send")
+    var xhr = new XMLHttpRequest()
+    var contentType= "text/json; charset=UTF-8"
+
+    xhr.open("GET", "/go", true)
+    xhr.setRequestHeader("Content-type", contentType)
+    xhr.onload = function () {
+        renderText(this.responseText)
+        updateObjects()
+    }
+
+    xhr.send()
+
+    checkSimOver()
+}
+
+listenBtn.onclick = function (event) {
+    textVal = document.getElementById("listen").value
+    console.log("text: " + textVal)
+    var xhr = new XMLHttpRequest()
+    var contentType= "application/x-www-form-urlencoded; charset=UTF-8"
+    var params = "questions=" + textVal
+
+    xhr.open("POST", "/listen", true)
+    xhr.setRequestHeader("Content-type", contentType)
+    xhr.onload = function () {
+        renderText(this.responseText)
+        updateObjects()
+    }
+
+    xhr.send(params)
+    console.log("sent listen command")
+
+    checkSimOver()
 }
 
     paper.view.draw()
@@ -110,8 +244,13 @@ button.onclick = function (event) {
 </head>
 <body>
 	<canvas id="myCanvas" resize="true"></canvas>
-        Enter text: <input type="text" name="command" id="val">
-        <button id="button" type="button"> Submit </button>
+
+    <button id="goBtn" type="button"> Go! </button>
+    Enter listen! input: <input type="text" name="command" id="listen">
+    <button id="listenBtn" type="button"> Listen! </button>
+
+    Enter lisp code to eval: <input type="text" name="command" id="eval">
+    <button id="evalBtn" type="button"> Submit </button>
 <style type="text/css">
 html,
 body {

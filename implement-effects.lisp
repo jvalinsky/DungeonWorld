@@ -44,6 +44,7 @@
          (deletes.actual (op.actual-deletes op.actual))
          tempdeletes adds deletes stopconds implied-facts bindings 
          new-state deletes-copy new-wff-htable new-terms
+         (output-str "")
         )
         ; Substitute the parameter values for the parameters in the termination 
         ; conditions and the actual effects.
@@ -91,7 +92,7 @@
                       )
                       (setq is-terminated 'T))
 
-                  (handleExtOps-Dungeon)
+                  (setf output-str (concatenate 'string output-str (handleExtOps-Dungeon)))
                )
 
            )

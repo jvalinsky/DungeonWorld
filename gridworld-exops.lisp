@@ -25,6 +25,7 @@
              state
              (unifiers (all-bindings-of-goals-to-fact-htable startconds *world-facts* (state-node-terms *curr-state-node*)))
              inst-op
+             (output-str "")
 			)
             (setq inst-op (instantiate-op op (car unifiers)))
             (setq action (eval inst-op))
@@ -111,7 +112,8 @@
 			(setq *states* (cons new-state (cdr *states*)))
 		)
 
-        (verbalize (car adds))
+        ;(setf output-str (concatenate 'string  output-str (verbalize* (car adds))))
+        output-str
 	)
 ); end of handleSee
 
@@ -142,6 +144,7 @@
 			 (is-terminated 'NIL) op name new-terms 
 			 (new-wff-htable (state-node-wff-htable *curr-state-node*))
 			 ststopconds stopconds adds deletes stadds stdeletes queue-length
+             (output-str "")
 			)
 
 		(setq queue-length (length  *event-queue*))
@@ -228,7 +231,7 @@
 				; none of its termination conditions are true in the world KB.
 
                 (if	(eq 'T is-see)
-					(handleSee see.actual 'T)
+					(setf output-str (concatenate 'string output-str (handleSee see.actual 'T)))
 				)
 				
 			); end of if-then-else clause for 
@@ -236,8 +239,8 @@
 		); end of processing active external events in *event-queue*
 
 		(when (eq 'NIL is-see-handled)
-			(handleSee see.actual 'NIL)
+				(setf output-str (concatenate 'string output-str (handleSee see.actual 'NIL)))
 		)
-
+        output-str
 	)
 ); end of handleExtOps-Dungeon

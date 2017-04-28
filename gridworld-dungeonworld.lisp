@@ -17,6 +17,9 @@
 
 (def-roadmap *dungeonworld-points* *dungeonworld-paths*)
 
+; used to check if agent escaped
+(defparameter *sim-over* nil)
+
 ;*******************
 ; Initialize Types *
 ;*******************
@@ -276,9 +279,15 @@
       4
 )))
 
-(defun terminate? ()
+; if flag is T, then program exits
+; otherwise just set *sim-over* to T
+(defun terminate? (flag)
   (format t "~%The agent escaped!~%~%")
-  (exit))
+  (if flag
+  (exit)
+  (progn
+    (setf *sim-over* T)
+    T)))
 
 (defun nextPos? (?curPos ?dir)
   ;;"return the next position after action"
@@ -521,11 +530,15 @@
         :adds '(
                 (has_won AG)
                 (happy?)
-                (terminate?)
+                (terminate (terminate? nil))
                 )
     )
 )
 
+; Helper function for server
+
+(defun agent_direction ()
+  (symbol-name (caddr (cadr (gethash '(is_facing AG nil) *world-facts*)))))
 
 ;*************************************
 ; Actions Modified From Example File *
